@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRISHTI — Explanation</title>
+<link rel="stylesheet" href="/static/shared.css">
+</head>
+<body>
+<nav class="nav">
+  <div class="brand"><span class="dot"></span> DRISHTI <small>traffic ripple prediction</small></div>
+  <div class="links">
+    <a href="/">Home</a>
+    <a href="/explain" class="active">Explain</a>
+    <a href="/math">Math</a>
+    <a href="/simulation">Simulation</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="hero">
+    <div class="kicker">Smart India Hackathon · Prototype</div>
+    <h1>Indian roads don't have obstacles.<br>They have negotiations.</h1>
+    <p class="lead">DRISHTI is an adaptive path-planning system for autonomous vehicles on
+      unstructured Indian roads. Instead of treating every road user as an object to avoid,
+      it models traffic as a web of agents who react to each other — and gives the ego vehicle
+      the ability to anticipate that reaction chain before it reaches its own corridor.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">01</span> The core idea: Traffic Ripple Prediction</h2>
+    <p>A pothole doesn't just sit there. It causes an auto to swerve. The swerve causes a
+      following two-wheeler to react. The two-wheeler's sudden move makes a nearby pedestrian
+      hesitate. By the time any of this reaches the ego vehicle's own lane, it's already a
+      three-hop chain reaction — and a system that only reasons about the <em>immediate</em>
+      obstacle sees none of it coming.</p>
+    <div class="diagram-flow">
+      <div class="node hot">Pothole</div><div class="arrow">→</div>
+      <div class="node">Auto swerves</div><div class="arrow">→</div>
+      <div class="node">Two-wheeler reacts</div><div class="arrow">→</div>
+      <div class="node">Pedestrian hesitates</div><div class="arrow">→</div>
+      <div class="node hot">Ego slows down</div>
+    </div>
+    <p>DRISHTI builds a <strong>dynamic interaction graph</strong> every tick — every nearby
+      agent is a node, proximity-weighted edges connect them — and propagates detected root
+      events (a hard brake, a swerve) outward through that graph as a delayed, decaying
+      reaction, up to 3 hops. It's rule-based and fully inspectable, not a black-box trajectory
+      predictor: you can point at any reaction and trace exactly which upstream event caused it.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">02</span> Negotiation-aware planning, not obstacle→STOP</h2>
+    <p>A human driver doesn't slam the brakes for every auto approaching from the side — they
+      slow slightly, hold a buffer, and negotiate the shared space. DRISHTI makes this explicit
+      as a five-state behavior machine, driven by a live <strong>Traffic Stress Index</strong>:</p>
+    <table class="spec">
+      <tr><th>Stress</th><th>State</th><th>Behavior</th></tr>
+      <tr><td>0–20</td><td><span class="pill follow">FOLLOW</span></td><td>Normal trajectory</td></tr>
+      <tr><td>20–40</td><td><span class="pill cautious">CAUTIOUS</span></td><td>Increased clearance around nearby agents</td></tr>
+      <tr><td>40–60</td><td><span class="pill negotiate">NEGOTIATE</span></td><td>Reduced speed, actively negotiate the shared corridor</td></tr>
+      <tr><td>60–80</td><td><span class="pill yield">YIELD</span></td><td>Conservative replanning — give way rather than contest it</td></tr>
+      <tr><td>80–100</td><td><span class="pill emergency">EMERGENCY</span></td><td>Yield/stop; Safety Shield is final authority</td></tr>
+    </table>
+    <p>Critically, the state doesn't just <em>label</em> the decision — it biases the planner's
+      own cost function (a real, visible cost penalty on maneuvers the state doesn't prefer), so
+      the relationship between "environment becomes chaotic" and "vehicle behavior changes" is
+      an actual algorithmic dependency, not dashboard decoration.</p>
+    <div class="card accent">
+      <h4>Risk Budget ≠ Traffic Stress Index</h4>
+      <p>Stress describes the <em>environment</em> (how chaotic is it right now). Risk Budget is
+        the <em>planner's</em> allowable exposure (100 − stress, non-linearly) — it directly
+        scales how risk-averse the cost function is this tick. Two distinct, connected quantities,
+        not one gauge doing two jobs.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">03</span> A drivable corridor, not a lane</h2>
+    <p>Most of the road network described in the problem statement has no painted lane markings.
+      So DRISHTI never asks "where is the lane" — it asks <strong>"what region of the road is
+      safely drivable right now?"</strong>, computed fresh every tick from the road boundary,
+      static obstacles, nearby agents (each widened by its own uncertainty), producing a
+      continuously reshaping corridor that the planner's lateral maneuvers are clamped to.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">04</span> Uncertainty has causes, not just magnitude</h2>
+    <p>Instead of one arbitrary safety-margin fudge factor, every perceived agent carries a
+      four-part uncertainty breakdown, so the planner can react to <em>why</em> something is
+      uncertain:</p>
+    <div class="grid-2">
+      <div class="card"><h4>Behavior uncertainty</h4><p>How spread-out its intent-hypothesis
+        distribution is, plus a live <strong>surprise score</strong> — how much its actual
+        motion deviates from a simple extrapolation of its last observed state.</p></div>
+      <div class="card"><h4>Perception uncertainty</h4><p>1 − sensor confidence for this
+        detection: range, field-of-view, and current lighting/fog conditions all feed this.</p></div>
+      <div class="card"><h4>Occlusion uncertainty</h4><p>How long it's been since this agent
+        was actually observed rather than inferred — a confidence that decays the longer an
+        agent stays hidden.</p></div>
+      <div class="card"><h4>Environment uncertainty</h4><p>How locally unclear the road boundary
+        itself is (a village road's edge can change width meter to meter).</p></div>
+    </div>
+    <p>These combine into a single multiplier that <em>widens</em> that agent's effective safety
+      margin — a pedestrian with high behavior uncertainty gets a bigger buffer than one with
+      low uncertainty, even at the same distance.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">05</span> Occlusion-aware hidden-agent risk</h2>
+    <p>A bus or truck doesn't just occlude whatever happens to be standing behind it in this
+      particular run — it creates a standing <strong>possibility</strong> that something is
+      there, in every run. DRISHTI computes an occlusion zone behind every large vehicle within
+      sensor range, and treats entering that zone at speed as a real (small) cost, whether or
+      not an agent actually materializes there — "potential unseen road user" rather than
+      "nothing detected, continue."</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">06</span> Behavior profiles, not just object categories</h2>
+    <p>Every perceived agent is classified by behavior, not only kind: <code>Stable</code>,
+      <code>Cautious</code>, <code>Erratic</code>, <code>Crossing</code>, <code>Filtering</code>,
+      <code>Oncoming</code>, <code>Stationary</code>, or <code>Occluded</code>. An auto-rickshaw
+      that's <em>Filtering</em> through traffic is planned around differently than one that's
+      <em>Stable</em> — the planner responds to what the agent is doing, not just what it is.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">07</span> Adaptive sensor trust</h2>
+    <p>Camera, LiDAR and radar aren't blended equally in every condition. Under low light or fog,
+      camera confidence drops and the fused detection leans on LiDAR/radar; a fast-moving agent
+      gets a radar-confidence boost. The planner doesn't just get "there is an object" — it gets
+      "there is an object, and here is our current confidence in its position and motion,"
+      which feeds directly into that agent's perception-uncertainty term.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">08</span> Explainable, every tick</h2>
+    <p>Every decision the ego makes produces a structured, human-readable trace: the reason,
+      a 0–100 risk score, the action taken, and the next re-evaluation interval — visible live
+      in the simulation, and traceable back through the ripple graph when the cause is a chain
+      reaction rather than a direct threat. This is also the audit trail a regulator, insurer,
+      or post-incident investigator would actually need — a black-box neural trajectory
+      predictor can't produce this.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">09</span> Independent Safety Shield</h2>
+    <p>The planner's chosen trajectory is re-checked by a deliberately simpler, independent
+      module: no intent hypotheses, no ripple graph — just a conservative constant-velocity
+      worst-case extrapolation of every currently perceived agent. If that ever predicts a
+      closer pass than a hard safety margin allows, the Shield vetoes the planner and substitutes
+      an emergency-braking fallback. Two independent lines of defense, on purpose.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">10</span> Why this is deployable, not just a demo</h2>
+    <p>The full architecture above is rule-based and probabilistic rather than a GPU-hungry deep
+      perception/prediction pipeline, so it runs on embedded-class compute (no automotive LiDAR
+      required) — positioning DRISHTI as a low-cost retrofit safety layer for existing Indian
+      fleet vehicles, not a decade-away full self-driving stack. See the cost comparison in the
+      project's <code>docs/</code> folder for real, cited hardware figures.</p>
+  </div>
+
+  <div class="footer-note">
+    Every run is seeded and procedurally varied — scenario layouts, agent counts, and even
+    lighting/fog conditions are generated from the seed rather than hardcoded, so the same
+    scenario key produces a genuinely different situation each time while keeping its defining
+    character intact. See the <a href="/simulation">Simulation</a> page to run it, or
+    <a href="/math">Math</a> for the underlying formulation.
+  </div>
+</div>
+</body>
+</html>

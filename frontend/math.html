@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRISHTI — Mathematical Formulation</title>
+<link rel="stylesheet" href="/static/shared.css">
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] } };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js" async></script>
+</head>
+<body>
+<nav class="nav">
+  <div class="brand"><span class="dot"></span> DRISHTI <small>traffic ripple prediction</small></div>
+  <div class="links">
+    <a href="/">Home</a>
+    <a href="/explain">Explain</a>
+    <a href="/math" class="active">Math</a>
+    <a href="/simulation">Simulation</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="hero">
+    <div class="kicker">Formulation</div>
+    <h1>The math behind every decision</h1>
+    <p class="lead">Every quantity the simulation displays — risk scores, the stress gauge,
+      uncertainty bars, the corridor shading — comes from one of the formulas below. Nothing
+      is a cosmetic number.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">01</span> Vehicle motion — kinematic bicycle model</h2>
+    <p>Every wheeled agent (ego included) integrates forward with:</p>
+    <div class="eq-box">
+      \[
+      \dot{x} = v\cos\theta, \qquad \dot{y} = v\sin\theta, \qquad
+      \dot{\theta} = \frac{v}{L}\tan\delta, \qquad \dot{v} = a
+      \]
+    </div>
+    <p class="formula-label">L = wheelbase, δ = steering angle (clamped), a = commanded acceleration. Integrated with a fixed timestep Δt.</p>
+
+    <h3>Soft agents (pedestrian / animal / pushcart)</h3>
+    <div class="eq-box">
+      \[
+      \dot{x} = v\cos\theta, \qquad \dot{y} = v\sin\theta, \qquad \dot{\theta} = \omega, \qquad \dot v = a
+      \]
+    </div>
+    <p class="formula-label">A point-mass model — no wheelbase constraint, direct heading-rate control ω.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">02</span> Longitudinal control — IDM-style car following</h2>
+    <div class="eq-box">
+      \[
+      a = a_{max}\left[1 - \left(\frac{v}{v_{target}}\right)^4 - \left(\frac{s^*(v)}{s}\right)^2\right],
+      \qquad s^*(v) = s_0 + vT
+      \]
+    </div>
+    <p class="formula-label">s = gap to the leading agent, s₀ = minimum standstill gap, T = desired time headway.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">03</span> Ripple propagation on the interaction graph</h2>
+    <p>The interaction graph is rebuilt every tick: nodes are live agents, edge weight decays
+      with distance:</p>
+    <div class="eq-box">
+      \[ w_{ij} = e^{-d_{ij} / (0.5\, R)} \qquad \text{for } d_{ij} < R \]
+    </div>
+    <p>A detected root event (magnitude \(m_0\), e.g. a hard brake or swerve) propagates hop by
+      hop; the disturbance delivered to a neighbor is:</p>
+    <div class="eq-box">
+      \[ m_{k+1} = m_k \cdot w_{ij} \cdot 0.85, \qquad \text{delivered after delay } \tau = r_j + \frac{d_{ij}}{25} \]
+    </div>
+    <p class="formula-label">r_j = that agent's own reaction-time constant. Propagation stops once m falls below a minimum threshold or after 3 hops.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">04</span> Intent estimation &amp; behavior uncertainty</h2>
+    <p>Each perceived agent carries a probability distribution over six maneuver hypotheses
+      \(P = \{p_h\}\), updated from observed heading-rate, deceleration, and nearby ripple
+      events. Behavior uncertainty combines the distribution's entropy with a live surprise
+      score:</p>
+    <div class="eq-box">
+      \[
+      H(P) = \frac{-\sum_h p_h \ln p_h}{\ln|\mathcal{H}|} \in [0,1]
+      \]
+      \[
+      \text{surprise}_t = 0.65\cdot\text{surprise}_{t-1} + 0.35\cdot
+      \min\!\left(1,\ \frac{\lVert \mathbf{x}_t - \hat{\mathbf{x}}_t \rVert}{0.4 + 0.35v}\right)
+      \]
+      \[
+      U_{behavior} = 0.6\, H(P) + 0.4\,\min(1,\text{surprise})
+      \]
+    </div>
+    <p class="formula-label">\(\hat{\mathbf{x}}_t\) is the naive constant-velocity extrapolation of the agent's previous observed state — sustained deviation from it is exactly what "behaving unexpectedly" means here.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">05</span> Multi-cause uncertainty combination</h2>
+    <div class="eq-box">
+      \[
+      U_{total} = 0.35\,U_{behavior} + 0.20\,U_{perception} + 0.30\,U_{occlusion} + 0.15\,U_{environment}
+      \]
+      \[
+      U_{perception} = 1 - \text{confidence}, \qquad
+      U_{occlusion} = \min\!\left(1, \frac{t_{unseen}}{2.0}\right), \qquad
+      U_{environment} = \min\!\left(1, \frac{|w(s{+}3) - w(s{-}3)|}{2.5}\right)
+      \]
+    </div>
+    <p>This directly widens that agent's effective safety margin: \(m_{eff} = m_{base}\,(1 + U_{total})\).</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">06</span> Risk scoring &amp; candidate cost</h2>
+    <p>For every candidate maneuver, at every rolled-out future point of every perceived agent's
+      every hypothesis:</p>
+    <div class="eq-box">
+      \[
+      \text{risk} = \sum_{\text{agents}}\sum_{h}\sum_{t} p_h \cdot \text{severity}(d)^2 \cdot e^{-0.5t},
+      \qquad
+      \text{severity}(d) = \max\!\left(0,\ \frac{1.5\,s_{safe} - d}{1.5\,s_{safe}}\right)
+      \]
+    </div>
+    <div class="eq-box">
+      \[
+      \text{cost} = w_{risk}\cdot\text{risk} + w_{comfort}\cdot\text{comfort} + \text{progress}
+      + w_{offroad}\cdot\text{offroad} + w_{occl}\cdot\text{occlusion} + \text{penalty}_{FSM}
+      \]
+    </div>
+    <p class="formula-label">progress = −2.0·(s_end − s_start) (a completed reward, so braking unnecessarily is never free). w_risk itself scales with the Risk Budget (§8).</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">07</span> Dynamic drivable corridor</h2>
+    <p>At each forward station \(s\), the corridor bound narrows from the raw road half-width by
+      every nearby obstacle and agent (padded by its own uncertainty):</p>
+    <div class="eq-box">
+      \[
+      \text{left}(s) = \min\Big(\tfrac{w(s)}{2},\ \min_{i:\,|s_i-s|<4}\big(\text{lat}_i - (0.9 + 1.5\,U_i)\big)\Big),
+      \quad \text{(symmetric for right)}
+      \]
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">08</span> Traffic Stress Index &amp; Risk Budget</h2>
+    <div class="eq-box">
+      \[
+      S = 100\big(0.30\,\rho + 0.25\,\phi + 0.25\,\omega + 0.20\,\kappa\big) \in [0,100]
+      \]
+    </div>
+    <p class="formula-label">ρ = nearby-agent density (saturating at 8), φ = active ripple-disturbance load, ω = occluded-detection fraction, κ = the planner's own last top risk score.</p>
+    <div class="eq-box">
+      \[
+      B = \max\!\left(0,\ (100-S)^{1.15} / 100^{0.15}\right), \qquad
+      w_{risk} = w_{base}\cdot\min\!\left(2.2,\ \sqrt{100 / \max(5,B)}\right)
+      \]
+    </div>
+    <p>The Behavior FSM's state is a direct, hysteresis-smoothed function of \(S\) (see the
+      Explain page's stress table) — the state machine and the cost function are driven by the
+      same number.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">09</span> Safety Shield — independent verification</h2>
+    <p>Deliberately simpler: no hypotheses, pure constant-velocity extrapolation of every
+      perceived agent, checked against the planner's chosen path:</p>
+    <div class="eq-box">
+      \[
+      \hat{\mathbf{x}}_{agent}(t) = \mathbf{x}_0 + v\,(\cos\theta,\sin\theta)\,t,
+      \qquad \text{veto if } \min_t \lVert \hat{\mathbf{x}}_{agent}(t) - \mathbf{x}_{ego}(t)\rVert < s_{safe} + 0.7 \ \text{for } t<1.3\text{s}
+      \]
+    </div>
+  </div>
+
+  <div class="footer-note">
+    All constants above (weights, thresholds, decay rates) are defined once, in code, in
+    <code>sim/planning/</code> and <code>sim/safety_shield/</code> — this page mirrors them
+    rather than restating a separate spec, so it can't drift out of sync with what actually runs.
+  </div>
+</div>
+</body>
+</html>

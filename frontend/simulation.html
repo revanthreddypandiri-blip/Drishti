@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRISHTI — Live Simulation</title>
+<link rel="stylesheet" href="/static/shared.css">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  body { display: flex; flex-direction: column; }
+  .nav { position: relative; flex: 0 0 auto; padding: 10px 22px; }
+  #app { flex: 1; min-height: 0; display: grid; grid-template-columns: 290px 1fr 330px; }
+  @media (max-width: 1150px) { #app { grid-template-columns: 250px 1fr 280px; } }
+  .side { background: rgba(10,14,21,.92); overflow-y: auto; padding: 16px 14px 30px; }
+  .side.left { border-right: 1px solid var(--border); } .side.right { border-left: 1px solid var(--border); }
+  .side::-webkit-scrollbar { width: 6px; } .side::-webkit-scrollbar-thumb { background: #223042; border-radius: 6px; }
+  .h { font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted); margin: 18px 0 8px; font-weight: 600; }
+  .h:first-child { margin-top: 2px; }
+  select, input[type=number], button.b {
+    width: 100%; background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 10px;
+    padding: 9px 11px; font: 500 13.5px 'Space Grotesk'; transition: all .15s; }
+  select:hover, input:hover, button.b:hover { border-color: var(--accent-dim); }
+  button.b { cursor: pointer; margin-bottom: 7px; text-align: left; display: flex; align-items: center; gap: 8px; }
+  button.b.on { border-color: var(--accent); color: var(--accent); background: rgba(34,224,192,.08); }
+  button.b.hot { background: linear-gradient(120deg, rgba(255,87,104,.16), rgba(245,185,66,.14)); border-color: #b5484f; }
+  button.b.hot:hover { box-shadow: 0 0 22px rgba(255,87,104,.3); }
+  .row { display: flex; gap: 7px; } .row > * { flex: 1; }
+  .seedrow { display: flex; gap: 7px; } .seedrow input { flex: 1; } .seedrow button { width: 44px; flex: 0 0 44px; justify-content: center; margin: 0; padding: 0; }
+  .desc { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin: 8px 2px 0; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  label.chk { display: flex; align-items: center; gap: 9px; font-size: 13px; color: #c4d1dd; padding: 4px 2px; cursor: pointer; }
+  label.chk input { accent-color: var(--accent); }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border);
+    font-size: 11.5px; color: var(--muted); }
+  .chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+  .chip.live i { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+
+  #stage { position: relative; background: #05070a; overflow: hidden; }
+  #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .ovl { position: absolute; pointer-events: none; }
+  #fsmbar { top: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; padding: 6px;
+    background: rgba(8,12,18,.72); backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 999px; }
+  .fs { padding: 6px 13px; border-radius: 999px; font-size: 11.5px; font-weight: 700; letter-spacing: 1px; color: #55677a; transition: all .3s; }
+  .fs.act { color: #04110e; background: var(--c); box-shadow: 0 0 20px var(--c); }
+  #topleft { top: 14px; left: 14px; display: flex; flex-direction: column; gap: 7px; align-items: flex-start; }
+  .tag { padding: 6px 12px; border-radius: 10px; background: rgba(8,12,18,.72); backdrop-filter: blur(10px);
+    border: 1px solid var(--border); font-size: 12px; color: #c4d1dd; }
+  .tag b { color: var(--text); }
+  #topright { top: 14px; right: 14px; text-align: right; }
+  #shield { top: 62px; left: 50%; transform: translateX(-50%); padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 700;
+    background: rgba(255,87,104,.16); border: 1px solid var(--danger); color: #ff8b98; backdrop-filter: blur(8px);
+    opacity: 0; transition: opacity .25s; } #shield.show { opacity: 1; animation: pulseR 1s infinite; }
+  @keyframes pulseR { 50% { box-shadow: 0 0 26px rgba(255,87,104,.55); } }
+  #explain { bottom: 16px; left: 50%; transform: translateX(-50%); width: min(720px, 92%);
+    background: rgba(8,12,18,.78); backdrop-filter: blur(14px); border: 1px solid var(--border); border-radius: 16px; padding: 14px 18px; }
+  #explain .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  #explain .ttl { font-size: 11px; letter-spacing: 1.6px; color: var(--accent); font-weight: 700; text-transform: uppercase; }
+  #explain .txt { font-size: 14.5px; line-height: 1.5; margin-bottom: 10px; }
+  #explain .kv { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  #explain .kv div { background: rgba(255,255,255,.035); border-radius: 9px; padding: 7px 10px; font-size: 11px; color: var(--muted); }
+  #explain .kv b { display: block; color: var(--text); font-size: 14px; margin-top: 2px; font-family: 'JetBrains Mono'; }
+  .legend { position: absolute; bottom: 16px; right: 14px; display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--muted); }
+
+  .gauge-wrap { position: relative; width: 190px; margin: 4px auto 0; }
+  .gauge-num { position: absolute; left: 0; right: 0; bottom: 4px; text-align: center; font-size: 34px; font-weight: 700; line-height: 1; }
+  .gauge-num small { display: block; font-size: 10px; color: var(--muted); letter-spacing: 1.5px; font-weight: 600; margin-top: 3px; }
+  .bar { height: 7px; border-radius: 6px; background: #17212e; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 6px; transition: width .25s; }
+  .m { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; padding: 5px 0; color: #b6c4d2; }
+  .m b { color: var(--text); font-family: 'JetBrains Mono'; font-weight: 500; }
+  .sub { font-size: 11.5px; color: var(--muted); margin: 8px 0 4px; display: flex; justify-content: space-between; }
+  .cand { display: grid; grid-template-columns: 1fr 44px; gap: 8px; align-items: center; font-size: 12px; padding: 5px 8px; border-radius: 8px; margin-bottom: 3px; color: #a9b8c7; }
+  .cand.best { background: rgba(34,224,192,.1); border: 1px solid var(--accent-dim); color: var(--text); }
+  .cand span:last-child { text-align: right; font-family: 'JetBrains Mono'; color: var(--muted); }
+  .ag { padding: 7px 8px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 6px; background: rgba(255,255,255,.015); }
+  .ag .t { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+  .ag .t em { font-style: normal; font-size: 10.5px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
+  .ag .t em.Erratic { color: var(--danger); border-color: var(--danger); } .ag .t em.Crossing { color: var(--warn); border-color: var(--warn); }
+  .ag .t em.Filtering { color: var(--accent2); border-color: var(--accent2); } .ag .t em.Stable { color: var(--ok); border-color: #2f6b4b; }
+  .stack { display: flex; height: 5px; border-radius: 5px; overflow: hidden; background: #17212e; }
+  #log div { font-size: 11.5px; color: var(--muted); padding: 4px 0; border-bottom: 1px solid #172230; animation: slideIn .4s; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(14px); } }
+  #log .k { font-weight: 700; margin-right: 6px; }
+  #toast { position: absolute; top: 96px; left: 50%; transform: translateX(-50%); padding: 8px 16px; border-radius: 10px; background: rgba(245,185,66,.14);
+    border: 1px solid var(--warn); color: var(--warn); font-size: 13px; opacity: 0; transition: opacity .3s; pointer-events: none; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="brand"><span class="dot"></span> DRISHTI <small>live simulation</small></div>
+  <div class="links">
+    <a href="/">Home</a><a href="/explain">Explain</a><a href="/math">Math</a><a href="/simulation" class="active">Simulation</a>
+  </div>
+</nav>
+
+<div id="app">
+  <!-- ============ LEFT: controls ============ -->
+  <aside class="side left">
+    <div class="h">Scenario</div>
+    <select id="scn"></select>
+    <div class="desc" id="scnDesc"></div>
+
+    <div class="h">Seed · procedural generation</div>
+    <div class="seedrow">
+      <input type="number" id="seed" value="42" min="0" max="999999">
+      <button class="b" id="applySeed" title="Rebuild with this seed">↻</button>
+      <button class="b" id="rndSeed" title="Random seed">🎲</button>
+    </div>
+    <div class="desc">Every seed generates a different but reproducible layout — agent counts, positions, obstacles, lighting.</div>
+
+    <div class="h">Run</div>
+    <div class="row">
+      <button class="b" id="pp">▶ Start</button>
+      <button class="b" id="rst">⟲ Reset</button>
+    </div>
+    <div class="sub"><span>Speed</span><span id="spdL">1.0×</span></div>
+    <input type="range" id="spd" min="0.25" max="3" step="0.25" value="1">
+    <div class="sub"><span>Zoom</span><span id="zmL">16 px/m</span></div>
+    <input type="range" id="zm" min="7" max="30" step="1" value="16">
+
+    <div class="h">Interaction</div>
+    <button class="b hot" id="whatif">⚡ Inject Event</button>
+    <button class="b on" id="bgai">🚗 Background AI: ON</button>
+    <button class="b" id="viewBtn">🎥 View: Chase cam</button>
+
+    <div class="h">Layers</div>
+    <label class="chk"><input type="checkbox" id="L_cor" checked> Drivable corridor</label>
+    <label class="chk"><input type="checkbox" id="L_unc" checked> Safety envelope / uncertainty</label>
+    <label class="chk"><input type="checkbox" id="L_occ" checked> Occlusion zones</label>
+    <label class="chk"><input type="checkbox" id="L_rip" checked> Ripple graph</label>
+    <label class="chk"><input type="checkbox" id="L_sen" checked> Sensor coverage</label>
+    <label class="chk"><input type="checkbox" id="L_cand" checked> Candidate trajectories</label>
+    <label class="chk"><input type="checkbox" id="L_prof" checked> Behavior labels</label>
+
+    <div class="h">Status</div>
+    <span class="chip" id="conn"><i></i><span>connecting…</span></span>
+  </aside>
+
+  <!-- ============ CENTER: stage ============ -->
+  <section id="stage">
+    <canvas id="cv"></canvas>
+    <div class="ovl" id="fsmbar"></div>
+    <div class="ovl" id="topleft">
+      <div class="tag" id="tagCond"></div>
+      <div class="tag" id="tagSeed"></div>
+    </div>
+    <div class="ovl" id="topright"><div class="tag" id="tagSpeed"></div></div>
+    <div class="ovl" id="shield"></div>
+    <div id="toast" class="ovl"></div>
+    <div class="ovl" id="explain">
+      <div class="top"><span class="ttl" id="exTtl">Replan evaluation</span><span class="chip live"><i></i>re-evaluating every <b id="exNext">0.3</b>s</span></div>
+      <div class="txt" id="exTxt">—</div>
+      <div class="kv">
+        <div>REASON<b id="exReason" style="font-size:12px;font-family:'Space Grotesk'">—</b></div>
+        <div>RISK<b id="exRisk">—</b></div>
+        <div>ACTION<b id="exAct" style="font-size:12px;font-family:'Space Grotesk'">—</b></div>
+        <div>CLEARANCE<b id="exClr">—</b></div>
+        <div>TTC<b id="exTtc">—</b></div>
+      </div>
+    </div>
+    <div class="legend ovl" id="legend"></div>
+  </section>
+
+  <!-- ============ RIGHT: insights ============ -->
+  <aside class="side right">
+    <div class="h">Traffic Stress Index</div>
+    <div class="gauge-wrap">
+      <svg viewBox="0 0 200 112" width="190">
+        <defs><linearGradient id="gg" x1="0" x2="1"><stop offset="0" stop-color="#4fd68c"/><stop offset=".45" stop-color="#f5b942"/><stop offset=".75" stop-color="#ff5768"/><stop offset="1" stop-color="#c9184a"/></linearGradient></defs>
+        <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="#17212e" stroke-width="14" stroke-linecap="round"/>
+        <path id="garc" d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="url(#gg)" stroke-width="14" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3" style="transition:stroke-dashoffset .35s"/>
+      </svg>
+      <div class="gauge-num"><span id="gnum">0</span><small id="gstate">FOLLOW</small></div>
+    </div>
+    <div class="sub"><span>Risk budget (allowable exposure)</span><b id="rbv">100</b></div>
+    <div class="bar"><i id="rbar" style="width:100%;background:linear-gradient(90deg,#22e0c0,#6c8bff)"></i></div>
+    <div class="sub" style="margin-top:12px"><span>stress components</span></div>
+    <div class="m"><span>Density</span><b id="sc_d">0</b></div>
+    <div class="m"><span>Ripple activity</span><b id="sc_r">0</b></div>
+    <div class="m"><span>Occlusion</span><b id="sc_o">0</b></div>
+    <div class="m"><span>Planner risk</span><b id="sc_p">0</b></div>
+
+    <div class="h">Adaptive sensor trust</div>
+    <div id="trust"></div>
+
+    <div class="h">Candidate maneuvers</div>
+    <div id="cands"></div>
+
+    <div class="h">Perceived agents</div>
+    <div class="sub" style="margin-top:0;gap:6px;flex-wrap:wrap;justify-content:flex-start">
+      <span><i class="dot" style="background:#a78bfa"></i> behavior</span><span><i class="dot" style="background:#38bdf8"></i> perception</span>
+      <span><i class="dot" style="background:#f472b6"></i> occlusion</span><span><i class="dot" style="background:#fbbf24"></i> environment</span></div>
+    <div id="agents"></div>
+
+    <div class="h">Performance</div>
+    <div id="perf"></div>
+
+    <div class="h">Ripple event log</div>
+    <div id="log"></div>
+  </aside>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const FSM = [['FOLLOW','#4fd68c'],['CAUTIOUS','#f5b942'],['NEGOTIATE','#ff9a4d'],['YIELD','#ff5768'],['EMERGENCY','#c9184a']];
+$('fsmbar').innerHTML = FSM.map(([n,c]) => `<div class="fs" data-s="${n}" style="--c:${c}">${n}</div>`).join('');
+const KCOL = { ego:'#22e0c0', car:'#8a7ee0', bus:'#5e8cc7', truck:'#c98f4b', auto:'#e6b422', two_wheeler:'#e04f5f',
+  pedestrian:'#f2e14b', animal:'#e9dfd0', pushcart:'#b98b5e', unknown_agent:'#999' };
+const UCOL = { behavior:'#a78bfa', perception:'#38bdf8', occlusion:'#f472b6', environment:'#fbbf24' };
+$('legend').innerHTML = Object.entries({Ego:'#22e0c0',Auto:'#e6b422','Two-wheeler':'#e04f5f',Car:'#8a7ee0','Bus/Truck':'#5e8cc7',Pedestrian:'#f2e14b',Cattle:'#e9dfd0'})
+  .map(([k,c]) => `<span><i class="dot" style="background:${c};box-shadow:0 0 6px ${c}"></i> ${k}</span>`).join('');
+
+/* ================= connection ================= */
+let ws, snap = null, prevA = {}, currA = {}, tArr = 0, ivl = 100, lastT = -1, lastKey = '';
+const seenEv = new Set(); let bursts = [];
+function connect() {
+  ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
+  ws.onopen = () => { $('conn').classList.add('live'); $('conn').lastChild.textContent = 'live'; send({ action: 'load_scenario', scenario: QS || 'village_road', seed: +$('seed').value }); holdPaused(); };
+  ws.onclose = () => { $('conn').classList.remove('live'); $('conn').lastChild.textContent = 'reconnecting…'; setTimeout(connect, 1200); };
+  ws.onmessage = e => onSnap(JSON.parse(e.data));
+}
+const send = o => ws && ws.readyState === 1 && ws.send(JSON.stringify(o));
+
+function onSnap(s) {
+  const key = s.road.name + s.seed;
+  if (key !== lastKey || s.t < lastT) { prevA = {}; currA = {}; bursts = []; seenEv.clear(); lastKey = key; $('log').innerHTML = ''; ivl = 100; }
+  lastT = s.t;
+  const now = performance.now();
+  if (tArr) ivl = ivl * .7 + Math.min(400, now - tArr) * .3;
+  tArr = now; prevA = currA; currA = {};
+  s.agents.forEach(a => currA[a.id] = { x: a.x, y: a.y, th: a.theta });
+  snap = s; updatePanels(s);
+}
+
+/* ================= controls ================= */
+fetch('/api/scenarios').then(r => r.json()).then(list => {
+  $('scn').innerHTML = list.map(s => `<option value="${s.key}" data-d="${s.description}">${s.title}</option>`).join('');
+  const cur = list.find(x => x.key === QS) || list[0]; $('scn').value = cur.key; $('scnDesc').textContent = cur.description;
+});
+const QS = new URLSearchParams(location.search).get('scenario');
+const holdPaused = () => { paused = true; send({ action: 'pause' }); $('pp').textContent = '▶ Start'; };
+const loadScn = () => { send({ action: 'load_scenario', scenario: $('scn').value, seed: +$('seed').value }); holdPaused(); };
+$('scn').onchange = () => { $('scnDesc').textContent = $('scn').selectedOptions[0].dataset.d; loadScn(); };
+$('applySeed').onclick = loadScn;
+$('rndSeed').onclick = () => { $('seed').value = 1 + Math.floor(Math.random() * 999998); loadScn(); };
+$('seed').onkeydown = e => { if (e.key === 'Enter') loadScn(); };
+let paused = true;
+const togglePause = () => { paused = !paused; send({ action: paused ? 'pause' : 'resume' }); $('pp').textContent = paused ? '▶ Resume' : '⏸ Pause'; };
+$('pp').onclick = togglePause; addEventListener('keydown', e => { if (e.code === 'Space' && e.target.tagName !== 'INPUT') { e.preventDefault(); togglePause(); } });
+$('rst').onclick = () => { send({ action: 'reset' }); holdPaused(); };
+$('spd').oninput = e => { send({ action: 'set_speed', value: +e.target.value }); $('spdL').textContent = (+e.target.value).toFixed(2) + '×'; };
+let S = 16; $('zm').oninput = e => { S = +e.target.value; $('zmL').textContent = S + ' px/m'; };
+let bg = true; $('bgai').onclick = e => { bg = !bg; send({ action: 'toggle_background_ai' }); e.target.textContent = '🚗 Background AI: ' + (bg ? 'ON' : 'OFF'); e.target.classList.toggle('on', bg); };
+let hud = false; $('viewBtn').onclick = e => { hud = !hud; e.target.textContent = hud ? '📱 View: Driver HUD' : '🎥 View: Chase cam'; };
+$('whatif').onclick = () => { send({ action: 'whatif' }); toast('⚡ Injected: nearest road user reacts unexpectedly'); };
+function toast(t) { const el = $('toast'); el.textContent = t; el.style.opacity = 1; clearTimeout(toast.h); toast.h = setTimeout(() => el.style.opacity = 0, 2200); }
+const L = id => $(id).checked;
+
+/* ================= panels ================= */
+function updatePanels(s) {
+  document.querySelectorAll('.fs').forEach(el => el.classList.toggle('act', el.dataset.s === s.fsm_state));
+  const st = s.stress || { total: 0, density: 0, ripple_activity: 0, occlusion: 0, planner_risk: 0 };
+  $('garc').style.strokeDashoffset = 251.3 * (1 - st.total / 100);
+  $('gnum').textContent = Math.round(st.total); $('gstate').textContent = s.fsm_state;
+  $('rbv').textContent = s.risk_budget; $('rbar').style.width = s.risk_budget + '%';
+  $('sc_d').textContent = st.density; $('sc_r').textContent = st.ripple_activity; $('sc_o').textContent = st.occlusion; $('sc_p').textContent = st.planner_risk;
+
+  const tr = s.sensor_trust || {};
+  $('trust').innerHTML = ['camera', 'lidar', 'radar'].map(k => `<div class="sub" style="margin:6px 0 3px"><span>${k}</span><b style="color:#e8eef5">${Math.round((tr[k] || 0) * 100)}%</b></div>
+    <div class="bar"><i style="width:${(tr[k] || 0) * 100}%;background:${k === 'camera' ? '#f5b942' : k === 'lidar' ? '#22e0c0' : '#6c8bff'}"></i></div>`).join('');
+
+  const cs = (s.candidates || []).slice().sort((a, b) => a.cost - b.cost);
+  $('cands').innerHTML = cs.map((c, i) => `<div class="cand ${i === 0 ? 'best' : ''}"><span>${i === 0 ? '▶ ' : ''}${c.label}</span><span>${c.cost.toFixed(1)}</span></div>`).join('');
+
+  $('agents').innerHTML = s.agents.filter(a => !a.is_ego && a.uncertainty).sort((a, b) => b.uncertainty.total - a.uncertainty.total).slice(0, 8).map(a => {
+    const u = a.uncertainty, tot = (u.behavior + u.perception + u.occlusion + u.environment) || 1;
+    return `<div class="ag"><div class="t"><span>${a.kind.replace('_', ' ')} <span style="color:#5d7085">${a.id}</span></span><em class="${a.behavior_profile}">${a.behavior_profile || '—'}</em></div>
+      <div class="stack" title="dominant: ${u.dominant}">${Object.keys(UCOL).map(k => `<i style="width:${u[k] / tot * u.total * 100}%;background:${UCOL[k]}"></i>`).join('')}</div>
+      <div class="sub" style="margin:4px 0 0"><span>uncertainty ${(u.total * 100).toFixed(0)}%</span><span>${u.dominant}</span></div></div>`;
+  }).join('');
+
+  const m = s.metrics;
+  $('perf').innerHTML = `<div class="m"><span>Sim time</span><b>${s.t.toFixed(1)} s</b></div>
+    <div class="m"><span>Ego progress</span><b>${(m.ego_progress_frac * 100).toFixed(0)}%</b></div>
+    <div class="bar" style="margin-bottom:6px"><i style="width:${m.ego_progress_frac * 100}%;background:linear-gradient(90deg,#22e0c0,#6c8bff)"></i></div>
+    <div class="m"><span>Replan latency</span><b>${s.plan_latency_ms.toFixed(1)} ms</b></div>
+    <div class="m"><span>Collisions</span><b style="color:${m.collisions ? '#ff5768' : '#4fd68c'}">${m.collisions}</b></div>
+    <div class="m"><span>Shield interventions</span><b>${m.shield_interventions}</b></div>
+    <div class="m"><span>Scenario complete</span><b>${m.completed ? '✔' : '—'}</b></div>`;
+
+  const ex = s.explain_struct || {};
+  const sh = s.verdict && !s.verdict.approved;
+  $('exTtl').textContent = sh ? '🛡 Safety Shield override' : 'Replan evaluation';
+  $('exTxt').textContent = s.explanation || '—';
+  $('exReason').textContent = sh ? 'Shield veto' : (ex.reason || '—');
+  $('exRisk').textContent = sh ? '100 / 100' : ((ex.risk_0_100 != null ? Math.min(100, ex.risk_0_100) : 0) + ' / 100');
+  $('exAct').textContent = sh ? 'Emergency brake' : (ex.action || '—');
+  $('exClr').textContent = s.verdict ? s.verdict.min_clearance.toFixed(1) + ' m' : '—';
+  { const eg = s.agents.find(a => a.is_ego); let ttc = Infinity;
+    for (const a of s.agents) { if (a.is_ego) continue; const dx = a.x - eg.x, dy = a.y - eg.y, f = dx * Math.cos(eg.theta) + dy * Math.sin(eg.theta), l = -dx * Math.sin(eg.theta) + dy * Math.cos(eg.theta);
+      if (f > 0 && Math.abs(l) < 2.5) { const gap = f - (eg.length + a.length) / 2, cl = eg.v - a.v * Math.cos(a.theta - eg.theta); if (cl > .1) ttc = Math.min(ttc, gap / cl); } }
+    const el = $('exTtc'); el.textContent = isFinite(ttc) ? ttc.toFixed(1) + ' s' : '∞'; el.style.color = ttc < 2 ? '#ff5768' : ttc < 4 ? '#f5b942' : '#e8eef5'; }
+  $('exNext').textContent = (ex.next_eval_s || 0.1).toFixed(1);
+  const shEl = $('shield'); shEl.classList.toggle('show', !!sh); if (sh) shEl.textContent = '🛡 SAFETY SHIELD OVERRIDE';
+
+  const c = s.conditions.lighting;
+  $('tagCond').innerHTML = `${c === 'day' ? '☀️ Daylight' : c === 'low_light' ? '🌙 Low light' : '🌫 Fog'} · camera trust <b>${Math.round((tr.camera || 0) * 100)}%</b>`;
+  $('tagSeed').innerHTML = `seed <b>${s.seed}</b> · ${s.agents.length - 1} road users`;
+  const ego = s.agents.find(a => a.is_ego);
+  $('tagSpeed').innerHTML = `<b style="font-size:22px">${ego ? (ego.v * 3.6).toFixed(0) : 0}</b> km/h`;
+  $('seed').value = s.seed;
+
+  for (const e of s.ripple_events) {
+    const k = e.kind + e.origin + e.x.toFixed(1) + e.y.toFixed(1);
+    if (seenEv.has(k)) continue; seenEv.add(k); if (seenEv.size > 600) seenEv.clear();
+    bursts.push({ x: e.x, y: e.y, kind: e.kind, t0: performance.now() });
+    const col = e.kind === 'brake' ? '#ff5768' : e.kind === 'swerve' ? '#f5b942' : '#7e93a8';
+    const d = document.createElement('div'); d.innerHTML = `<span class="k" style="color:${col}">${e.kind.toUpperCase()}</span>${e.origin} · t=${s.t.toFixed(1)}s · mag ${e.magnitude.toFixed(2)}`;
+    $('log').prepend(d); while ($('log').children.length > 24) $('log').lastChild.remove();
+  }
+}
+
+/* ================= rendering ================= */
+const cv = $('cv'), g = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1;
+function resize() { DPR = Math.min(2, devicePixelRatio || 1); const r = cv.getBoundingClientRect(); W = r.width; H = r.height; cv.width = W * DPR; cv.height = H * DPR; g.setTransform(DPR, 0, 0, DPR, 0, 0); }
+new ResizeObserver(resize).observe($('stage')); resize();
+
+// pre-rendered asphalt / ground noise
+function makeNoise(size, base, spread, dens) {
+  const c = document.createElement('canvas'); c.width = c.height = size; const x = c.getContext('2d');
+  x.fillStyle = base; x.fillRect(0, 0, size, size);
+  for (let i = 0; i < size * size * dens; i++) { const v = (Math.random() * spread) | 0; x.fillStyle = `rgba(${v},${v},${v + 4},${Math.random() * .5})`; x.fillRect(Math.random() * size, Math.random() * size, 1 + Math.random() * 1.6, 1 + Math.random() * 1.6); }
+  return c;
+}
+const asphaltTex = g.createPattern(makeNoise(256, '#2a2f37', 110, .28), 'repeat');
+const groundTex = g.createPattern(makeNoise(256, '#0f1410', 60, .12), 'repeat');
+const dirtTex = g.createPattern(makeNoise(256, '#241f17', 70, .22), 'repeat');
+
+const rng32 = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+let envKey = '', env = null;
+function sampleRoad(rd, n) {
+  const P = rd.points, Wd = rd.width, out = []; const seg = P.length - 1;
+  for (let i = 0; i <= n; i++) {
+    const u = i / n * seg, k = Math.min(seg - 1, Math.floor(u)), t = u - k, tc = (1 - Math.cos(Math.PI * t)) / 2;
+    const x = P[k][0] + (P[k + 1][0] - P[k][0]) * t, y = P[k][1] + (P[k + 1][1] - P[k][1]) * t;
+    const dx = P[k + 1][0] - P[k][0], dy = P[k + 1][1] - P[k][1], l = Math.hypot(dx, dy) || 1;
+    out.push({ x, y, nx: -dy / l, ny: dx / l, h: Math.atan2(dy, dx), w: Wd[k] + (Wd[k + 1] - Wd[k]) * tc });
+  }
+  return out;
+}
+function buildEnv(s) {
+  const smp = sampleRoad(s.road, 90), r = rng32(s.seed * 7919 + s.road.name.length), props = [], cracks = [], patches = [];
+  const dense = false, village = false, hw = /Highway/.test(s.road.name);
+  for (let i = 3; i < smp.length - 2; i += 2) for (const side of [1, -1]) {
+    const q = smp[i], off = q.w / 2 + 2.4 + r() * 2;
+    const p = { x: q.x + q.nx * side * off, y: q.y + q.ny * side * off, h: q.h, side, r: r() };
+    if (dense) { p.kind = 'building'; p.len = 5 + r() * 6; p.dep = 3.5 + r() * 3; p.col = 28 + (r() * 14 | 0); p.shop = r() < .55; p.hue = (r() * 360) | 0; props.push(p); }
+    else if (village) { p.kind = p.r < .55 ? 'tree' : p.r < .72 ? 'hut' : null; p.rad = 1.2 + r() * 1.6; if (p.kind) props.push(p); }
+    else if (hw) { p.kind = p.r < .35 ? 'tree' : null; p.rad = 1.4 + r() * 1.2; if (p.kind) props.push(p); }
+    else { p.kind = p.r < .4 ? 'tree' : null; p.rad = 1.2 + r() * 1.4; if (p.kind) props.push(p); }
+  }
+  for (let i = 0; i < 46; i++) { const q = smp[(r() * smp.length) | 0], o = (r() - .5) * q.w * .9; cracks.push({ x: q.x + q.nx * o, y: q.y + q.ny * o, a: r() * 6.28, l: .8 + r() * 2.4 }); }
+  for (let i = 0; i < 18; i++) { const q = smp[(r() * smp.length) | 0], o = (r() - .5) * q.w * .8; patches.push({ x: q.x + q.nx * o, y: q.y + q.ny * o, rx: .8 + r() * 1.8, ry: .5 + r() * 1.1, a: r() * 3 }); }
+  return { smp, props, cracks, patches };
+}
+
+const cam = { x: 0, y: 0, init: false };
+const w2s = (x, y) => [(x - cam.x) * S + W / 2, H / 2 - (y - cam.y) * S];
+const lerpAng = (a, b, t) => { let d = ((b - a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI; return a + d * t; };
+
+function interp(a) {
+  const al = Math.max(0, Math.min(1, (performance.now() - tArr) / ivl)), p = prevA[a.id];
+  if (!p) return { x: a.x, y: a.y, th: a.theta };
+  return { x: p.x + (a.x - p.x) * al, y: p.y + (a.y - p.y) * al, th: lerpAng(p.th, a.theta, al) };
+}
+function poly(pts, close) { pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); if (close) g.closePath(); }
+function rrect(x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+
+function drawGround(s, T) {
+  const tx = new DOMMatrix().translate(W / 2 - cam.x * S, H / 2 + cam.y * S);
+  groundTex.setTransform(tx); dirtTex.setTransform(tx); asphaltTex.setTransform(tx);
+  g.fillStyle = groundTex; g.fillRect(0, 0, W, H);
+  const smp = env.smp;
+  const edge = (off) => smp.map(q => w2s(q.x + q.nx * (q.w / 2 + off), q.y + q.ny * (q.w / 2 + off)));
+  const edgeN = (off) => smp.map(q => w2s(q.x - q.nx * (q.w / 2 + off), q.y - q.ny * (q.w / 2 + off)));
+  // dirt shoulders
+  g.beginPath(); poly(edge(1.9)); poly(edgeN(1.9).reverse()); g.closePath(); g.fillStyle = dirtTex; g.fill();
+  // road surface
+  g.beginPath(); poly(edge(0)); poly(edgeN(0).reverse()); g.closePath();
+  g.fillStyle = asphaltTex; g.fill();
+  g.save(); g.clip();
+  const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, 'rgba(255,255,255,.035)'); gr.addColorStop(.5, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(255,255,255,.03)');
+  g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  // wheel wear tracks
+  g.strokeStyle = 'rgba(8,10,13,.42)'; g.lineWidth = .7 * S;
+  for (const o of [-1.25, 1.25]) { g.beginPath(); poly(smp.map(q => w2s(q.x + q.nx * o, q.y + q.ny * o))); g.stroke(); }
+  // patches + cracks (deterministic per seed)
+  for (const p of env.patches) { const [x, y] = w2s(p.x, p.y); if (x < -40 || x > W + 40) continue; g.fillStyle = 'rgba(10,12,15,.5)'; g.beginPath(); g.ellipse(x, y, p.rx * S, p.ry * S, p.a, 0, 7); g.fill(); }
+  g.strokeStyle = 'rgba(0,0,0,.55)'; g.lineWidth = 1;
+  for (const c of env.cracks) { const [x, y] = w2s(c.x, c.y); if (x < -30 || x > W + 30) continue; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(c.a) * c.l * S, y - Math.sin(c.a) * c.l * S); g.lineTo(x + Math.cos(c.a + .8) * c.l * S * 1.5, y - Math.sin(c.a + .8) * c.l * S * 1.3); g.stroke(); }
+  g.restore();
+  // eroded edge lines (unmarked road: no painted lanes)
+  g.strokeStyle = 'rgba(190,200,210,.22)'; g.lineWidth = 2; g.setLineDash([S * 1.6, S * .9, S * .5, S * 1.1]);
+  g.beginPath(); poly(edge(-.25)); g.stroke(); g.beginPath(); poly(edgeN(-.25)); g.stroke(); g.setLineDash([]);
+}
+
+/* ================= road network: junctions, crossings, Indian roadside ================= */
+const hsh = v => { const x = Math.sin(v * 127.1) * 43758.5; return x - Math.floor(x); };
+function wbox(x, y, w, d, fill) { const [sx, sy] = w2s(x - w / 2, y + d / 2); g.fillStyle = fill; g.fillRect(sx, sy, w * S, d * S); return [sx, sy]; }
+function stripes(x, y, len, vert, worn) { for (let u = -len / 2, i = 0; u < len / 2; u += .9, i++) { if (worn && hsh(x + i) > .72) continue; g.fillStyle = `rgba(235,235,225,${worn ? .4 : .8})`;
+  const [sx, sy] = vert ? w2s(x + u, y + 1.5) : w2s(x - 1.5, y + u + .45); vert ? g.fillRect(sx, sy, .45 * S, 3 * S) : g.fillRect(sx, sy, 3 * S, .45 * S); } }
+function drawNetwork(s) {
+  const n = s.network; if (!n || !n.arms) return; const H = n.H, T = performance.now() / 1000, P = w2s, x0 = cam.x - W / S, x1 = cam.x + W / S;
+  for (const a of n.arms) {                      // side roads / merging roads
+    const dx = a.x1 - a.x0, dy = a.y1 - a.y0, l = Math.hypot(dx, dy), nx = -dy / l, ny = dx / l, t0 = (a.d * (H - 2) - a.y0) / dy;
+    for (const [ww, fill, st] of [[a.w + 3.4, dirtTex, t0], [a.w, asphaltTex, 0]]) { const h = ww / 2, ax = a.x0 + dx * st, ay = a.y0 + dy * st;
+      g.beginPath(); poly([P(ax + nx * h, ay + ny * h), P(a.x1 + nx * h, a.y1 + ny * h), P(a.x1 - nx * h, a.y1 - ny * h), P(ax - nx * h, ay - ny * h)], 1); g.fillStyle = fill; g.fill(); }
+    g.strokeStyle = 'rgba(225,225,205,.26)'; g.lineWidth = 1.5; g.setLineDash([S * 1.4, S * 2.4, S * .6, S * 1.3]); g.beginPath(); poly([P(a.x0, a.y0), P(a.x1, a.y1)]); g.stroke(); g.setLineDash([]);
+    if (a.zebra) stripes(a.x0 + dx * .1, a.d * (H + 4.5), a.w, true, false);
+  }
+  const wid = { broken: 0, faded: 1, solid: 2 }[n.mark];   // main-road markings (none = unmarked)
+  if (wid !== undefined) { g.lineWidth = 2; g.strokeStyle = wid === 1 ? 'rgba(230,230,215,.16)' : 'rgba(235,235,225,.5)'; g.setLineDash(wid === 2 ? [S * 3, S * 5] : [S * 2.2, S * 3.2, S * .7, S * 1.5]);
+    g.beginPath(); poly(env.smp.map(q => P(q.x, q.y))); g.stroke(); g.setLineDash([]);
+    if (wid === 2) for (const sd of [1, -1]) { g.strokeStyle = 'rgba(240,240,230,.55)'; g.beginPath(); poly(env.smp.map(q => P(q.x + q.nx * sd * (q.w / 2 - .3), q.y + q.ny * sd * (q.w / 2 - .3)))); g.stroke(); } }
+  if (n.median) { const [ax, ay] = P(0, H - 1.4); g.fillStyle = '#6f737a'; g.fillRect(ax, ay - 1.1 * S, (n.L) * S, 1.1 * S); g.strokeStyle = '#d9b93a'; g.lineWidth = 1.5; g.setLineDash([S * .8, S * .8]); g.strokeRect(ax, ay - 1.1 * S, n.L * S, 1.1 * S); g.setLineDash([]); }
+  for (const z of n.zebra) stripes(z.x, 0, H * 2 - 4, false, hsh(z.x) > .5);
+  for (const z of n.informal) { const [sx, sy] = P(z.x, 0); g.fillStyle = 'rgba(150,120,80,.2)'; g.beginPath(); g.ellipse(sx, sy, 2.2 * S, (H - 1.5) * S, 0, 0, 7); g.fill();
+    for (let i = -3; i <= 3; i++) { g.fillStyle = 'rgba(200,170,120,.35)'; g.beginPath(); g.arc(sx + Math.sin(i * 5) * S, sy + i * S * 1.1, .18 * S, 0, 7); g.fill(); }
+    g.fillStyle = '#c9b48a'; g.font = '600 10px "Space Grotesk"'; g.textAlign = 'center'; g.fillText('INFORMAL CROSSING', sx, sy - (H - 1) * S); }
+  for (const c of n.conflict) { const [sx, sy] = P(c.x - c.w / 2, H); g.fillStyle = `rgba(255,150,60,${.09 + .05 * Math.sin(T * 3)})`; g.fillRect(sx, sy, c.w * S, 2 * H * S);
+    g.strokeStyle = 'rgba(255,150,60,.55)'; g.lineWidth = 1.2; g.setLineDash([6, 5]); g.strokeRect(sx, sy, c.w * S, 2 * H * S); g.setLineDash([]);
+    g.fillStyle = '#ffab5e'; g.font = '700 10px "Space Grotesk"'; g.textAlign = 'center'; g.fillText('CONFLICT ZONE', sx + c.w * S / 2, sy - 6); }
+  for (const b of n.bumps) { for (let i = 0; i < 8; i++) { const [sx, sy] = P(b, H - 2 - i * (2 * H - 4) / 8); g.fillStyle = i % 2 ? '#e8c53a' : '#1d1d1d'; g.fillRect(sx, sy, .7 * S, (2 * H - 4) / 8 * S + 1); } }
+  for (const d of n.drains) { const [sx, sy] = P(d, -H + 1.3); g.fillStyle = '#07090b'; g.fillRect(sx, sy, 3 * S, .9 * S); g.strokeStyle = '#3a4048'; g.lineWidth = 1; for (let i = 1; i < 6; i++) { g.beginPath(); g.moveTo(sx + i * .5 * S, sy); g.lineTo(sx + i * .5 * S, sy + .9 * S); g.stroke(); } }
+  if (n.work) { const [sx, sy] = P(n.work.x0, n.work.y + 2.4); g.fillStyle = 'rgba(255,140,30,.13)'; g.fillRect(sx, sy, (n.work.x1 - n.work.x0) * S, 2.4 * S); g.fillStyle = '#ffa53d'; g.font = '700 10px "Space Grotesk"'; g.textAlign = 'center'; g.fillText('CONSTRUCTION', sx + (n.work.x1 - n.work.x0) * S / 2, sy - 6); }
+  for (const b of n.bus) { wbox(b, H + 1.6, 5, 1.4, '#39424d'); wbox(b, H + 1.1, 5, .3, '#f0b429'); const [sx, sy] = P(b, H + 3); g.fillStyle = '#ffd166'; g.font = '700 10px "Space Grotesk"'; g.textAlign = 'center'; g.fillText('BUS STOP', sx, sy + 4); }
+  for (const o of n.objs) { if (o.x < x0 || o.x > x1) continue; const [sx, sy] = P(o.x, o.y), c = o.c;
+    if (['shop', 'commercial', 'house', 'garage'].includes(o.k)) { g.fillStyle = 'rgba(0,0,0,.4)'; g.fillRect(sx - o.w * S / 2 + 5, sy - o.d * S / 2 + 6, o.w * S, o.d * S);
+      const hue = c * 360, [bx, by] = wbox(o.x, o.y, o.w, o.d, o.k === 'house' ? `hsl(${hue},18%,${26 + c * 10}%)` : `hsl(${hue},14%,${20 + c * 8}%)`);
+      g.fillStyle = 'rgba(255,255,255,.07)'; g.fillRect(bx + 3, by + 3, o.w * S - 6, o.d * S - 6);
+      const ry = o.s > 0 ? by + o.d * S - .9 * S : by;
+      if (o.k === 'shop') { g.fillStyle = `hsla(${hue},70%,52%,.9)`; g.fillRect(bx, ry, o.w * S, .9 * S); g.fillStyle = 'rgba(255,230,160,.5)'; g.fillRect(bx + 4, o.s > 0 ? ry - 3 : ry + .9 * S, o.w * S - 8, 3); }
+      else if (o.k === 'garage') { g.fillStyle = '#4b5561'; g.fillRect(bx + o.w * S * .15, ry, o.w * S * .7, .9 * S); }
+      else if (o.k === 'commercial') { g.fillStyle = 'rgba(140,190,240,.25)'; for (let i = 0; i < 5; i++) g.fillRect(bx + 6 + i * (o.w * S - 12) / 5, by + o.d * S * .3, (o.w * S - 12) / 5 - 4, o.d * S * .4); }
+      else { g.strokeStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.moveTo(bx, by + o.d * S / 2); g.lineTo(bx + o.w * S, by + o.d * S / 2); g.stroke(); } }
+    else if (o.k === 'wall' || o.k === 'gate') { wbox(o.x, o.y, o.w, .5, '#6b6558'); if (o.k === 'gate') { wbox(o.x, o.y, 1.8, .55, '#7a3b2e'); } }
+    else if (o.k === 'hut') { g.fillStyle = 'rgba(0,0,0,.4)'; g.fillRect(sx - o.w * S / 2 + 4, sy - 1.6 * S + 5, o.w * S, 3.2 * S); wbox(o.x, o.y, o.w, 3.2, '#5a4630'); wbox(o.x, o.y, o.w, 1.3, '#8a6e44'); }
+    else if (o.k === 'tree') { g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.arc(sx + 4, sy + 5, 1.5 * S, 0, 7); g.fill(); g.fillStyle = '#245f30'; g.beginPath(); g.arc(sx, sy, 1.5 * S, 0, 7); g.fill(); g.fillStyle = '#2f7a3c'; g.beginPath(); g.arc(sx - 3, sy - 3, .9 * S, 0, 7); g.fill(); }
+    else if (o.k === 'parked') { g.fillStyle = `hsl(${c * 360},35%,42%)`; rrect(sx - .9 * S * 2 / 2 * 1.1, sy - .45 * S * 2, 3.8 * S / 1.1, 1.8 * S, 5); g.fill(); g.fillStyle = 'rgba(10,18,28,.8)'; g.fillRect(sx - .2 * S, sy - .7 * S, 1.2 * S, 1.4 * S); }
+    else if (o.k === 'cart') { wbox(o.x, o.y, 1.7, 1, '#8a6b45'); g.fillStyle = `hsl(${c * 360},70%,55%)`; g.beginPath(); g.arc(sx, sy, .9 * S, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.25)'; g.beginPath(); g.arc(sx - 2, sy - 2, .35 * S, 0, 7); g.fill(); }
+    else if (o.k === 'pole') { g.fillStyle = '#20252b'; g.beginPath(); g.arc(sx, sy, .28 * S, 0, 7); g.fill(); g.strokeStyle = '#20252b'; g.lineWidth = 2; g.beginPath(); g.moveTo(sx - 1.2 * S, sy); g.lineTo(sx + 1.2 * S, sy); g.stroke(); }
+    else if (o.k === 'bin') wbox(o.x, o.y, .8, .8, '#2d6a4a');
+    else if (o.k === 'barrier') { wbox(o.x, o.y, o.w, .5, '#e8e8e8'); for (let i = 0; i < 4; i++) { g.fillStyle = '#d33'; g.fillRect(sx - o.w * S / 2 + i * o.w * S / 4, sy - .25 * S, o.w * S / 8, .5 * S); } }
+    else if (o.k === 'cone') { g.fillStyle = '#ff7a1a'; g.beginPath(); g.arc(sx, sy, .3 * S, 0, 7); g.fill(); g.fillStyle = '#fff'; g.beginPath(); g.arc(sx, sy, .14 * S, 0, 7); g.fill(); }
+  }
+}
+function drawProps(s) {
+  for (const p of env.props) {
+    const [x, y] = w2s(p.x, p.y); if (x < -120 || x > W + 120 || y < -120 || y > H + 120) continue;
+    if (p.kind === 'tree') {
+      g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.arc(x + 5, y + 6, p.rad * S, 0, 7); g.fill();
+      const gr = g.createRadialGradient(x - 3, y - 3, 2, x, y, p.rad * S); gr.addColorStop(0, '#2f7a3c'); gr.addColorStop(1, '#123a1c');
+      g.fillStyle = gr; g.beginPath(); g.arc(x, y, p.rad * S, 0, 7); g.fill();
+    } else if (p.kind === 'hut') {
+      g.save(); g.translate(x, y); g.rotate(-p.h); g.fillStyle = 'rgba(0,0,0,.4)'; g.fillRect(-2 * S + 5, -1.6 * S + 6, 4 * S, 3.2 * S);
+      g.fillStyle = '#5a4630'; g.fillRect(-2 * S, -1.6 * S, 4 * S, 3.2 * S); g.fillStyle = '#7a5f3d'; g.fillRect(-2 * S, -1.6 * S, 4 * S, 1.2 * S); g.restore();
+    } else if (p.kind === 'building') {
+      g.save(); g.translate(x, y); g.rotate(-p.h); const L = p.len * S, D = p.dep * S;
+      g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(-L / 2 + 7, -D / 2 + 8, L, D);
+      g.fillStyle = `rgb(${p.col},${p.col + 4},${p.col + 10})`; g.fillRect(-L / 2, -D / 2, L, D);
+      g.fillStyle = 'rgba(255,255,255,.07)'; g.fillRect(-L / 2, -D / 2, L, D * .18);
+      if (p.shop) { const sd = p.side; g.fillStyle = `hsla(${p.hue},70%,55%,.85)`; g.fillRect(-L / 2 + 4, sd > 0 ? -D / 2 - 0 : D / 2 - 5, L - 8, 5);
+        g.shadowColor = `hsl(${p.hue},80%,60%)`; g.shadowBlur = 14; g.fillStyle = `hsla(${p.hue},80%,70%,.55)`; g.fillRect(-L / 2 + 6, sd > 0 ? -D / 2 : D / 2 - 3, L - 12, 3); g.shadowBlur = 0; }
+      g.restore();
+    }
+  }
+}
+function drawCorridor(s) {
+  const st = s.corridor; if (!st || st.length < 2) return;
+  const P = [], Q = [];
+  for (let i = 0; i < st.length; i++) {
+    const a = st[Math.max(0, i - 1)], b = st[Math.min(st.length - 1, i + 1)], h = Math.atan2(b.y - a.y, b.x - a.x), nx = -Math.sin(h), ny = Math.cos(h);
+    P.push(w2s(st[i].x + nx * st[i].left, st[i].y + ny * st[i].left)); Q.push(w2s(st[i].x + nx * st[i].right, st[i].y + ny * st[i].right));
+  }
+  const g1 = g.createLinearGradient(...P[0], ...P[P.length - 1]); g1.addColorStop(0, 'rgba(34,224,192,.26)'); g1.addColorStop(1, 'rgba(34,224,192,.03)');
+  g.beginPath(); poly(P); poly(Q.reverse()); g.closePath(); g.fillStyle = g1; g.fill();
+  g.strokeStyle = 'rgba(34,224,192,.55)'; g.lineWidth = 1.6; g.setLineDash([8, 6]); g.lineDashOffset = -performance.now() * .02;
+  g.beginPath(); poly(P); g.stroke(); g.beginPath(); poly(Q); g.stroke(); g.setLineDash([]);
+}
+function drawOcclusion(s) {
+  const T = performance.now() / 1000;
+  for (const z of s.occlusion_zones || []) {
+    const [x, y] = w2s(z.x, z.y), r = z.r * S;
+    g.save(); g.beginPath(); g.arc(x, y, r, 0, 7); g.clip();
+    g.fillStyle = 'rgba(167,139,250,.14)'; g.fillRect(x - r, y - r, r * 2, r * 2);
+    g.strokeStyle = 'rgba(167,139,250,.35)'; g.lineWidth = 1.5;
+    for (let i = -r * 2; i < r * 2; i += 9) { g.beginPath(); g.moveTo(x + i + (T * 10 % 9), y - r); g.lineTo(x + i + r + (T * 10 % 9), y + r); g.stroke(); }
+    g.restore();
+    g.strokeStyle = `rgba(167,139,250,${.55 + .3 * Math.sin(T * 3)})`; g.lineWidth = 1.8; g.setLineDash([6, 5]); g.beginPath(); g.arc(x, y, r, 0, 7); g.stroke(); g.setLineDash([]);
+    g.fillStyle = '#c4b5fd'; g.font = '600 11px "Space Grotesk"'; g.textAlign = 'center'; g.fillText('possible hidden road user', x, y - r - 6);
+  }
+}
+function drawSensors(ego, I) {
+  const [x, y] = w2s(I.x, I.y), T = performance.now() / 1000, R = 45 * S;
+  g.save(); g.translate(x, y); g.rotate(-I.th);
+  const gr = g.createRadialGradient(0, 0, 0, 0, 0, R); gr.addColorStop(0, 'rgba(108,139,255,.16)'); gr.addColorStop(1, 'rgba(108,139,255,0)');
+  g.fillStyle = gr; g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, R, -Math.PI * 70 / 180, Math.PI * 70 / 180); g.closePath(); g.fill();
+  g.strokeStyle = 'rgba(34,224,192,.4)'; g.lineWidth = 1.2; const rr = (T * .6 % 1) * R;
+  g.beginPath(); g.arc(0, 0, rr, 0, 7); g.globalAlpha = 1 - rr / R; g.stroke(); g.globalAlpha = 1;
+  const sw = T * 2.4; g.strokeStyle = 'rgba(34,224,192,.5)'; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(sw) * R * .6, Math.sin(sw) * R * .6); g.stroke();
+  g.restore();
+}
+function drawEnvelope(s) {
+  for (const a of s.agents) {
+    if (a.is_ego || !a.uncertainty) continue; const I = interp(a), [x, y] = w2s(I.x, I.y), u = a.uncertainty;
+    const len = Math.max(2.5, a.v * 3) * S, h0 = a.width * .5 * S, h1 = h0 + (1 + u.total * 5) * S * 0.7;
+    g.save(); g.translate(x, y); g.rotate(-I.th);
+    const col = UCOL[u.dominant] || '#fff';
+    const gr = g.createLinearGradient(0, 0, len, 0); gr.addColorStop(0, col + '55'); gr.addColorStop(1, col + '00');
+    g.fillStyle = gr; g.beginPath(); g.moveTo(0, -h0); g.lineTo(len, -h1); g.lineTo(len, h1); g.lineTo(0, h0); g.closePath(); g.fill();
+    g.strokeStyle = col + '88'; g.lineWidth = 1; g.stroke(); g.restore();
+  }
+}
+function drawRipples(s) {
+  const now = performance.now();
+  if (L('L_rip')) {
+    const by = {}; s.agents.forEach(a => by[a.id] = interp(a));
+    for (const [u, v, w] of s.ripple_edges) { if (w < .2 || !by[u] || !by[v]) continue; const [x1, y1] = w2s(by[u].x, by[u].y), [x2, y2] = w2s(by[v].x, by[v].y);
+      g.strokeStyle = `rgba(245,185,66,${Math.min(.45, w * .5)})`; g.lineWidth = 1; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); }
+  }
+  bursts = bursts.filter(b => now - b.t0 < 1300);
+  for (const b of bursts) { const k = (now - b.t0) / 1300, [x, y] = w2s(b.x, b.y), c = b.kind === 'brake' ? '255,87,104' : b.kind === 'swerve' ? '245,185,66' : '126,147,168';
+    for (let j = 0; j < 2; j++) { const kk = Math.max(0, k - j * .18); if (kk <= 0) continue; g.strokeStyle = `rgba(${c},${(1 - kk) * .9})`; g.lineWidth = 2.5 - kk * 1.5; g.beginPath(); g.arc(x, y, (.8 + kk * 7) * S, 0, 7); g.stroke(); } }
+}
+function drawPlan(s) {
+  if (L('L_cand') && s.candidates) for (const c of s.candidates) { if (s.chosen && c.name === s.chosen.name) continue;
+    g.strokeStyle = 'rgba(255,255,255,.10)'; g.lineWidth = 2; g.beginPath(); poly(c.points.map(p => w2s(p[0], p[1]))); g.stroke(); }
+  if (s.chosen) {
+    const pts = s.chosen.points.map(p => w2s(p[0], p[1])), sh = s.verdict && !s.verdict.approved, col = sh ? '255,87,104' : '34,224,192';
+    g.lineCap = 'round'; g.lineJoin = 'round';
+    g.strokeStyle = `rgba(${col},.18)`; g.lineWidth = 22; g.beginPath(); poly(pts); g.stroke();
+    g.strokeStyle = `rgba(${col},.95)`; g.lineWidth = 3.5; g.shadowColor = `rgb(${col})`; g.shadowBlur = 14; g.beginPath(); poly(pts); g.stroke(); g.shadowBlur = 0;
+    g.fillStyle = `rgb(${col})`; pts.forEach((p, i) => { if (i % 3 === 0 && i) { g.globalAlpha = 1 - i / pts.length * .7; g.beginPath(); g.arc(p[0], p[1], 3, 0, 7); g.fill(); } }); g.globalAlpha = 1;
+  }
+}
+
+/* --- vehicle / actor sprites, all top-down, oriented along +x --- */
+function sprite(a, I, s) {
+  const [x, y] = w2s(I.x, I.y), Lm = a.length * S, Wm = a.width * S, k = a.kind, T = performance.now() / 1000;
+  g.save(); g.translate(x, y); g.rotate(-I.th);
+  g.fillStyle = 'rgba(0,0,0,.42)'; g.filter = 'blur(3px)'; rrect(-Lm / 2 + 4, -Wm / 2 + 5, Lm, Wm, Wm * .3); g.fill(); g.filter = 'none';
+  const col = KCOL[k] || '#aaa';
+  if (k === 'ego' || k === 'car') {
+    const gr = g.createLinearGradient(0, -Wm / 2, 0, Wm / 2); gr.addColorStop(0, shade(col, 26)); gr.addColorStop(1, shade(col, -30));
+    g.fillStyle = gr; rrect(-Lm / 2, -Wm / 2, Lm, Wm, Wm * .28); g.fill();
+    g.fillStyle = 'rgba(10,18,28,.85)'; rrect(-Lm * .12, -Wm * .38, Lm * .34, Wm * .76, 4); g.fill(); // windshield/roof glass
+    g.fillStyle = 'rgba(255,255,255,.14)'; rrect(-Lm * .32, -Wm * .34, Lm * .22, Wm * .68, 4); g.fill();
+    headlights(Lm, Wm, k === 'ego' || s.conditions.lighting !== 'day');
+    if (k === 'ego') { g.strokeStyle = '#fff'; g.lineWidth = 1.6; rrect(-Lm / 2, -Wm / 2, Lm, Wm, Wm * .28); g.stroke(); }
+  } else if (k === 'bus' || k === 'truck') {
+    const gr = g.createLinearGradient(0, -Wm / 2, 0, Wm / 2); gr.addColorStop(0, shade(col, 24)); gr.addColorStop(1, shade(col, -34));
+    g.fillStyle = gr; rrect(-Lm / 2, -Wm / 2, Lm, Wm, 5); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,.14)'; g.lineWidth = 1; for (let i = -3; i <= 3; i++) { g.beginPath(); g.moveTo(i * Lm / 8, -Wm / 2 + 3); g.lineTo(i * Lm / 8, Wm / 2 - 3); g.stroke(); }
+    g.fillStyle = 'rgba(10,18,28,.9)'; g.fillRect(Lm / 2 - Lm * .13, -Wm * .4, Lm * .1, Wm * .8);
+    headlights(Lm, Wm, s.conditions.lighting !== 'day');
+  } else if (k === 'auto') {
+    g.fillStyle = '#16181c'; rrect(-Lm / 2, -Wm / 2, Lm, Wm, Wm * .35); g.fill();
+    g.fillStyle = col; rrect(-Lm / 2 + 2, -Wm / 2 + 2, Lm * .72, Wm - 4, Wm * .3); g.fill();
+    g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(-Lm * .05, -Wm * .3, 2, Wm * .6);
+    g.fillStyle = '#0d1116'; g.beginPath(); g.moveTo(Lm / 2 - 1, 0); g.lineTo(Lm / 2 - Lm * .28, -Wm * .34); g.lineTo(Lm / 2 - Lm * .28, Wm * .34); g.closePath(); g.fill();
+    headlights(Lm * .9, Wm * .6, s.conditions.lighting !== 'day');
+  } else if (k === 'two_wheeler') {
+    g.fillStyle = '#15171b'; rrect(-Lm / 2, -Wm * .24, Lm, Wm * .48, Wm * .24); g.fill();
+    g.fillStyle = col; rrect(-Lm * .3, -Wm * .3, Lm * .5, Wm * .6, Wm * .3); g.fill();
+    g.fillStyle = '#d9c3a5'; g.beginPath(); g.arc(-Lm * .05, 0, Wm * .42, 0, 7); g.fill(); g.fillStyle = '#e04f5f'; g.beginPath(); g.arc(-Lm * .05, 0, Wm * .3, 0, 7); g.fill();
+    headlights(Lm, Wm * .7, true);
+  } else if (k === 'pedestrian') {
+    const wob = Math.sin(T * 8 + a.x) * (a.v > .1 ? 1 : 0);
+    g.fillStyle = '#3a3f8a'; g.beginPath(); g.ellipse(0, wob, Wm * .5, Wm * .95, 0, 0, 7); g.fill();
+    g.fillStyle = '#e8c9a0'; g.beginPath(); g.arc(1, 0, Wm * .5, 0, 7); g.fill();
+  } else if (k === 'animal') {
+    g.fillStyle = col; g.beginPath(); g.ellipse(0, 0, Lm * .5, Wm * .5, 0, 0, 7); g.fill();
+    g.fillStyle = '#6b5a45'; g.beginPath(); g.ellipse(-Lm * .1, 0, Lm * .2, Wm * .3, 0, 0, 7); g.fill();
+    g.fillStyle = shade(col, -25); g.beginPath(); g.ellipse(Lm * .48, 0, Lm * .17, Wm * .3, 0, 0, 7); g.fill();
+    g.strokeStyle = '#d8d0c0'; g.lineWidth = 2; g.beginPath(); g.moveTo(Lm * .5, -Wm * .3); g.lineTo(Lm * .58, -Wm * .55); g.moveTo(Lm * .5, Wm * .3); g.lineTo(Lm * .58, Wm * .55); g.stroke();
+  } else if (k === 'pushcart') {
+    g.fillStyle = col; rrect(-Lm / 2, -Wm / 2, Lm, Wm, 3); g.fill();
+    g.fillStyle = '#e04f5f'; g.fillRect(-Lm * .3, -Wm * .35, Lm * .3, Wm * .7); g.fillStyle = '#7bd88f'; g.fillRect(0, -Wm * .35, Lm * .3, Wm * .7);
+    g.fillStyle = '#111'; g.fillRect(-Lm * .4, -Wm * .55, 6, 3); g.fillRect(-Lm * .4, Wm * .55 - 3, 6, 3);
+  } else { g.fillStyle = col; g.beginPath(); g.arc(0, 0, Wm / 2, 0, 7); g.fill(); }
+  g.restore();
+}
+function headlights(Lm, Wm, strong) {
+  const f = Lm / 2; g.fillStyle = '#fff3c4'; g.shadowColor = '#ffe9a0'; g.shadowBlur = strong ? 14 : 5;
+  g.fillRect(f - 3, -Wm * .36, 3, 4); g.fillRect(f - 3, Wm * .36 - 4, 3, 4); g.shadowBlur = 0;
+  g.fillStyle = '#ff3b3b'; g.fillRect(-f, -Wm * .36, 2, 4); g.fillRect(-f, Wm * .36 - 4, 2, 4);
+}
+function shade(hex, amt) { const n = parseInt(hex.slice(1), 16), c = v => Math.max(0, Math.min(255, v + amt)); return `rgb(${c(n >> 16)},${c(n >> 8 & 255)},${c(n & 255)})`; }
+
+function drawLabels(s) {
+  g.textAlign = 'center';
+  for (const a of s.agents) {
+    if (a.is_ego) continue; const I = interp(a), [x, y] = w2s(I.x, I.y); if (x < -40 || x > W + 40) continue;
+    if (a.id === s.focus_agent_id) {
+      const r = Math.max(a.length, a.width) * S * .9 + 12, T = performance.now() / 1000; g.strokeStyle = '#f5b942'; g.lineWidth = 2; g.shadowColor = '#f5b942'; g.shadowBlur = 12;
+      const q = r + Math.sin(T * 6) * 2; for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { g.beginPath(); g.moveTo(x + sx * q, y + sy * (q - 9)); g.lineTo(x + sx * q, y + sy * q); g.lineTo(x + sx * (q - 9), y + sy * q); g.stroke(); } g.shadowBlur = 0;
+      g.fillStyle = '#f5b942'; g.font = '700 11px "Space Grotesk"'; g.fillText('RIPPLE RISK', x, y - q - 8);
+    }
+    if (a.disturbed) { g.strokeStyle = 'rgba(245,185,66,.8)'; g.lineWidth = 1.8; g.beginPath(); g.arc(x, y, Math.max(a.length, 2) * S * .75, 0, 7); g.stroke(); }
+    if (L('L_prof') && a.behavior_profile && a.behavior_profile !== 'Stable') {
+      const txt = a.behavior_profile.toUpperCase(), w = g.measureText(txt).width + 14;
+      g.font = '700 9.5px "Space Grotesk"'; const ww = g.measureText(txt).width + 14, yy = y - Math.max(a.width, 1) * S * .8 - 14;
+      const c = { Erratic: '#ff5768', Crossing: '#f5b942', Filtering: '#6c8bff', Occluded: '#a78bfa', Stationary: '#7e93a8', Oncoming: '#ff9a4d', Cautious: '#38bdf8' }[a.behavior_profile] || '#7e93a8';
+      g.fillStyle = 'rgba(8,12,18,.82)'; rrect(x - ww / 2, yy - 10, ww, 15, 7); g.fill(); g.strokeStyle = c; g.lineWidth = 1; g.stroke(); g.fillStyle = c; g.fillText(txt, x, yy + 1);
+    }
+  }
+}
+function drawObstacles(s) {
+  for (const o of s.obstacles) {
+    const [x, y] = w2s(o.x, o.y), r = Math.max(.5, o.r) * S;
+    if (x < -50 || x > W + 50) continue;
+    if (o.kind === 'pothole') {
+      const gr = g.createRadialGradient(x, y, 0, x, y, r * 1.5); gr.addColorStop(0, '#040506'); gr.addColorStop(.65, '#101317'); gr.addColorStop(1, 'rgba(16,19,23,0)');
+      g.fillStyle = gr; g.beginPath(); g.ellipse(x, y, r * 1.5, r * 1.1, .2, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(255,255,255,.13)'; g.lineWidth = 1.5; g.beginPath(); g.ellipse(x, y, r * 1.05, r * .75, .2, 0, 7); g.stroke();
+      g.fillStyle = 'rgba(245,185,66,.9)'; g.font = '600 10px "Space Grotesk"'; g.textAlign = 'center'; g.fillText('POTHOLE', x, y - r * 1.5 - 4);
+    } else { g.fillStyle = '#4d4438'; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.fillStyle = '#6b5f4e'; g.beginPath(); g.arc(x - 2, y - 2, r * .6, 0, 7); g.fill(); }
+  }
+}
+function drawAtmos(s, I) {
+  const [x, y] = w2s(I.x, I.y), c = s.conditions.lighting;
+  if (c === 'fog') {
+    const gr = g.createRadialGradient(x, y, 14 * S, x, y, 34 * S); gr.addColorStop(0, 'rgba(190,205,220,0)'); gr.addColorStop(1, 'rgba(190,205,220,.62)');
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  } else if (c === 'low_light') {
+    const gr = g.createRadialGradient(x + 8 * S, y, 6 * S, x + 8 * S, y, 34 * S); gr.addColorStop(0, 'rgba(2,4,14,0)'); gr.addColorStop(1, 'rgba(2,4,14,.78)');
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    g.save(); g.translate(x, y); g.rotate(-I.th); const hg = g.createRadialGradient(0, 0, 0, 0, 0, 24 * S); hg.addColorStop(0, 'rgba(255,240,190,.28)'); hg.addColorStop(1, 'rgba(255,240,190,0)');
+    g.fillStyle = hg; g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, 24 * S, -.32, .32); g.closePath(); g.fill(); g.restore();
+  }
+  const v = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .4, W / 2, H / 2, Math.max(W, H) * .75); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.55)');
+  g.fillStyle = v; g.fillRect(0, 0, W, H);
+}
+
+/* ---------- driver HUD (ego-centric perspective) ---------- */
+function drawHUD(s) {
+  const ego = s.agents.find(a => a.is_ego); if (!ego) return; const E = interp(ego), hz = H * .36, F = 9, MAXD = 60;
+  const proj = (x, y) => { const dx = x - E.x, dy = y - E.y, f = dx * Math.cos(E.th) + dy * Math.sin(E.th), l = -dx * Math.sin(E.th) + dy * Math.cos(E.th);
+    if (f < .5 || f > MAXD) return null; const sc = F / (f + F); return { x: W / 2 - l * sc * W * .075, y: H - sc * (H - hz), sc, f, l }; };
+  const sky = g.createLinearGradient(0, 0, 0, hz); sky.addColorStop(0, s.conditions.lighting === 'day' ? '#1d3a5c' : '#04060c'); sky.addColorStop(1, s.conditions.lighting === 'fog' ? '#8d9aa8' : '#23364b');
+  g.fillStyle = sky; g.fillRect(0, 0, W, hz); const rd = g.createLinearGradient(0, hz, 0, H); rd.addColorStop(0, '#1b2028'); rd.addColorStop(1, '#0a0d11'); g.fillStyle = rd; g.fillRect(0, hz, W, H - hz);
+  const L1 = [], R1 = []; for (const q of env.smp) { const a = proj(q.x + q.nx * q.w / 2, q.y + q.ny * q.w / 2), b = proj(q.x - q.nx * q.w / 2, q.y - q.ny * q.w / 2); if (a && b) { L1.push(a); R1.push(b); } }
+  if (L1.length > 1) { g.beginPath(); L1.forEach((p, i) => i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y)); for (let i = R1.length - 1; i >= 0; i--) g.lineTo(R1[i].x, R1[i].y); g.closePath(); g.fillStyle = '#2b3038'; g.fill(); }
+  if (s.chosen) { g.beginPath(); let st = false; for (const p of s.chosen.points) { const q = proj(p[0], p[1]); if (!q) continue; st ? g.lineTo(q.x, q.y) : g.moveTo(q.x, q.y); st = true; } g.strokeStyle = 'rgba(34,224,192,.9)'; g.lineWidth = 7; g.lineCap = 'round'; g.shadowColor = '#22e0c0'; g.shadowBlur = 16; g.stroke(); g.shadowBlur = 0; }
+  const list = s.agents.filter(a => !a.is_ego).map(a => ({ a, q: proj(interp(a).x, interp(a).y) })).filter(o => o.q).sort((p, q) => q.q.f - p.q.f);
+  for (const { a, q } of list) { const w = Math.max(10, a.width * 60 * q.sc * 2.2), h = Math.max(10, (a.kind === 'bus' || a.kind === 'truck' ? 3 : 1.6) * 60 * q.sc * 1.6);
+    g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.ellipse(q.x, q.y, w * .65, h * .12, 0, 0, 7); g.fill();
+    g.fillStyle = KCOL[a.kind] || '#aaa'; rrect(q.x - w / 2, q.y - h, w, h, 5); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.85)'; g.font = `600 ${Math.max(10, 13 * q.sc + 8)}px "Space Grotesk"`; g.textAlign = 'center'; g.fillText(`${a.kind.replace('_', ' ')} · ${q.f.toFixed(0)}m`, q.x, q.y - h - 6);
+    if (a.id === s.focus_agent_id) { g.strokeStyle = '#f5b942'; g.lineWidth = 2; g.setLineDash([7, 5]); g.strokeRect(q.x - w / 2 - 8, q.y - h - 8, w + 16, h + 16); g.setLineDash([]); g.fillStyle = '#f5b942'; g.font = '700 13px "Space Grotesk"'; g.fillText('⚠ RIPPLE RISK', q.x, q.y - h - 26); } }
+  g.fillStyle = 'rgba(8,12,18,.7)'; rrect(W / 2 - 150, H - 70, 300, 50, 14); g.fill(); g.fillStyle = '#e8eef5'; g.font = '700 26px "Space Grotesk"'; g.textAlign = 'left'; g.fillText(`${(ego.v * 3.6).toFixed(0)}`, W / 2 - 128, H - 35);
+  g.font = '500 12px "Space Grotesk"'; g.fillStyle = '#7e93a8'; g.fillText('km/h', W / 2 - 92, H - 35); g.fillStyle = '#22e0c0'; g.font = '600 13px "Space Grotesk"'; g.fillText(s.chosen ? s.chosen.label : '', W / 2 - 40, H - 35);
+}
+
+function frame() {
+  requestAnimationFrame(frame);
+  if (!snap) { g.fillStyle = '#05070a'; g.fillRect(0, 0, W, H); return; }
+  const s = snap, key = s.road.name + s.seed; if (key !== envKey) { env = buildEnv(s); envKey = key; cam.init = false; }
+  const ego = s.agents.find(a => a.is_ego), I = interp(ego);
+  if (!cam.init) { cam.x = I.x + 8; cam.y = I.y; cam.init = true; }
+  cam.x += (I.x + 9 * Math.cos(I.th) - cam.x) * .12; cam.y += (I.y - cam.y) * .12;
+  g.clearRect(0, 0, W, H);
+  if (hud) { drawHUD(s); return; }
+  drawGround(s); drawNetwork(s); drawProps(s);
+  if (L('L_cor')) drawCorridor(s);
+  drawObstacles(s);
+  if (L('L_occ')) drawOcclusion(s);
+  if (L('L_sen')) drawSensors(ego, I);
+  if (L('L_unc')) drawEnvelope(s);
+  drawRipples(s); drawPlan(s);
+  const ordered = s.agents.slice().sort((p, q) => (p.kind === 'bus' || p.kind === 'truck' ? 1 : 0) - (q.kind === 'bus' || q.kind === 'truck' ? 1 : 0));
+  for (const a of ordered) sprite(a, interp(a), s);
+  drawLabels(s); drawAtmos(s, I);
+}
+connect(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

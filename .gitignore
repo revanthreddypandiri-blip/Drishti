@@ -1,0 +1,134 @@
+# ==============================================================================
+# DRISHTI V5 - .gitignore
+# Excludes environment, cache, IDE, dataset, checkpoint, and log files.
+# ==============================================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller / Executables
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py.cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Virtual Environments
+.venv/
+venv/
+venv-*/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# OS / System Specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Secrets & Environment Variables
+.env
+.env.*
+!.env.example
+*.secret
+*.pem
+*.key
+*.pfx
+*.p12
+
+# Raw / External Datasets (Do NOT commit raw sensor logs or datasets)
+data/raw/
+data/downloaded/
+raw_data/
+datasets/raw/
+*.bag
+*.pcap
+*.mcap
+*.las
+*.laz
+
+# Downloaded Archives
+*.tar.gz
+*.tgz
+*.zip
+*.7z
+*.rar
+
+# ML Models / Large Checkpoints / Weights
+*.pth
+*.pt
+*.ckpt
+*.onnx
+*.h5
+*.hdf5
+*.bin
+*.safetensors
+*.engine
+*.tflite
+models/checkpoints/
+
+# Logs & Temporary Files
+*.log
+logs/
+*.tmp
+*.temp
+tmp/

@@ -1,0 +1,908 @@
+[
+  {
+    "scenario": "village_road",
+    "runs": 10,
+    "collision_free_runs": 10,
+    "total_collision_ticks": 0,
+    "avg_progress": 0.477,
+    "completion_rate": 0.0,
+    "lat_mean_ms": 2.119,
+    "lat_p95_ms": 2.659,
+    "smoothness": 0.00221,
+    "shield_per_run": 134.1,
+    "per_seed": [
+      {
+        "seed": 1,
+        "progress": 0.8979911485008923,
+        "completed": false,
+        "collisions": 0,
+        "shield": 90,
+        "lat_mean": 2.272938364000197,
+        "lat_p95": 3.6935509999977967,
+        "smooth": 0.0022299523140795175,
+        "min_clear": 2.1392698606122313,
+        "fsm": {
+          "CAUTIOUS": 65,
+          "NEGOTIATE": 117,
+          "YIELD": 8,
+          "FOLLOW": 60
+        }
+      },
+      {
+        "seed": 2,
+        "progress": 0.7005726175885637,
+        "completed": false,
+        "collisions": 0,
+        "shield": 114,
+        "lat_mean": 2.2996562880006195,
+        "lat_p95": 2.678341999995837,
+        "smooth": 0.002865661178653311,
+        "min_clear": 2.227521807837264,
+        "fsm": {
+          "CAUTIOUS": 63,
+          "NEGOTIATE": 148,
+          "YIELD": 39
+        }
+      },
+      {
+        "seed": 3,
+        "progress": 0.10887657146928834,
+        "completed": false,
+        "collisions": 0,
+        "shield": 176,
+        "lat_mean": 2.086744991999012,
+        "lat_p95": 2.4395220000030804,
+        "smooth": 0.0008925231526383681,
+        "min_clear": 1.8512780760494827,
+        "fsm": {
+          "CAUTIOUS": 206,
+          "NEGOTIATE": 25,
+          "YIELD": 18,
+          "FOLLOW": 1
+        }
+      },
+      {
+        "seed": 4,
+        "progress": 0.7504551771694926,
+        "completed": false,
+        "collisions": 0,
+        "shield": 77,
+        "lat_mean": 2.1734951720006848,
+        "lat_p95": 2.623363999987305,
+        "smooth": 0.0026278717847869437,
+        "min_clear": 1.4249751241474273,
+        "fsm": {
+          "CAUTIOUS": 99,
+          "FOLLOW": 56,
+          "NEGOTIATE": 69,
+          "YIELD": 26
+        }
+      },
+      {
+        "seed": 5,
+        "progress": 0.11110038758029711,
+        "completed": false,
+        "collisions": 0,
+        "shield": 183,
+        "lat_mean": 2.112440079999601,
+        "lat_p95": 2.7142579999974714,
+        "smooth": 0.0012989367839664246,
+        "min_clear": 2.200236747791594,
+        "fsm": {
+          "CAUTIOUS": 203,
+          "NEGOTIATE": 38,
+          "YIELD": 7,
+          "FOLLOW": 2
+        }
+      },
+      {
+        "seed": 6,
+        "progress": 0.2562261294673832,
+        "completed": false,
+        "collisions": 0,
+        "shield": 166,
+        "lat_mean": 2.0262565600005473,
+        "lat_p95": 2.2687729999972817,
+        "smooth": 0.002497216553793603,
+        "min_clear": 1.291329534063811,
+        "fsm": {
+          "CAUTIOUS": 155,
+          "NEGOTIATE": 70,
+          "YIELD": 25
+        }
+      },
+      {
+        "seed": 7,
+        "progress": 0.6920346966023951,
+        "completed": false,
+        "collisions": 0,
+        "shield": 81,
+        "lat_mean": 2.2260970240006372,
+        "lat_p95": 2.843028999990338,
+        "smooth": 0.0023785527668653845,
+        "min_clear": 1.4406166787339816,
+        "fsm": {
+          "CAUTIOUS": 121,
+          "NEGOTIATE": 122,
+          "YIELD": 7
+        }
+      },
+      {
+        "seed": 8,
+        "progress": 0.9200326686662239,
+        "completed": false,
+        "collisions": 0,
+        "shield": 90,
+        "lat_mean": 2.0695007640002814,
+        "lat_p95": 2.370132000010017,
+        "smooth": 0.004127689903052877,
+        "min_clear": 1.6957310261371836,
+        "fsm": {
+          "CAUTIOUS": 66,
+          "NEGOTIATE": 111,
+          "YIELD": 6,
+          "FOLLOW": 67
+        }
+      },
+      {
+        "seed": 9,
+        "progress": 0.10604496992277163,
+        "completed": false,
+        "collisions": 0,
+        "shield": 183,
+        "lat_mean": 2.062525239999786,
+        "lat_p95": 2.8680300000019088,
+        "smooth": 0.0010747227890589674,
+        "min_clear": 0.822689327126352,
+        "fsm": {
+          "FOLLOW": 4,
+          "CAUTIOUS": 188,
+          "NEGOTIATE": 40,
+          "YIELD": 18
+        }
+      },
+      {
+        "seed": 10,
+        "progress": 0.2280571408703406,
+        "completed": false,
+        "collisions": 0,
+        "shield": 181,
+        "lat_mean": 1.8640197879998368,
+        "lat_p95": 2.090309000010393,
+        "smooth": 0.0021254466711854545,
+        "min_clear": 1.8314718501407459,
+        "fsm": {
+          "CAUTIOUS": 73,
+          "NEGOTIATE": 103,
+          "YIELD": 74
+        }
+      }
+    ]
+  },
+  {
+    "scenario": "urban_intersection",
+    "runs": 10,
+    "collision_free_runs": 10,
+    "total_collision_ticks": 0,
+    "avg_progress": 0.475,
+    "completion_rate": 0.0,
+    "lat_mean_ms": 2.065,
+    "lat_p95_ms": 2.584,
+    "smoothness": 0.00054,
+    "shield_per_run": 152,
+    "per_seed": [
+      {
+        "seed": 1,
+        "progress": 0.47178367274078586,
+        "completed": false,
+        "collisions": 0,
+        "shield": 149,
+        "lat_mean": 1.7336008799992442,
+        "lat_p95": 1.9972540000026129,
+        "smooth": 0.0007725387124377647,
+        "min_clear": 1.844965460616193,
+        "fsm": {
+          "CAUTIOUS": 66,
+          "NEGOTIATE": 71,
+          "YIELD": 108,
+          "EMERGENCY": 5
+        }
+      },
+      {
+        "seed": 2,
+        "progress": 0.48560085089869703,
+        "completed": false,
+        "collisions": 0,
+        "shield": 171,
+        "lat_mean": 2.153568372000109,
+        "lat_p95": 2.5809060000199224,
+        "smooth": 0.0006183452308388304,
+        "min_clear": 2.968938119147358,
+        "fsm": {
+          "FOLLOW": 6,
+          "CAUTIOUS": 50,
+          "YIELD": 188,
+          "NEGOTIATE": 6
+        }
+      },
+      {
+        "seed": 3,
+        "progress": 0.4701261917488189,
+        "completed": false,
+        "collisions": 0,
+        "shield": 157,
+        "lat_mean": 2.2100964439998734,
+        "lat_p95": 3.704289000012295,
+        "smooth": 0.00048555366290455856,
+        "min_clear": 0.47793764098504815,
+        "fsm": {
+          "FOLLOW": 12,
+          "CAUTIOUS": 44,
+          "NEGOTIATE": 47,
+          "YIELD": 147
+        }
+      },
+      {
+        "seed": 4,
+        "progress": 0.4705248271675219,
+        "completed": false,
+        "collisions": 0,
+        "shield": 157,
+        "lat_mean": 2.123317972000791,
+        "lat_p95": 2.471795999980486,
+        "smooth": 0.00013430560763403178,
+        "min_clear": 0.3757590690963618,
+        "fsm": {
+          "FOLLOW": 1,
+          "CAUTIOUS": 62,
+          "NEGOTIATE": 33,
+          "YIELD": 154
+        }
+      },
+      {
+        "seed": 5,
+        "progress": 0.47603510126781606,
+        "completed": false,
+        "collisions": 0,
+        "shield": 141,
+        "lat_mean": 2.3897688759991524,
+        "lat_p95": 3.4044359999825247,
+        "smooth": 0.001301918213936768,
+        "min_clear": 1.434259812156256,
+        "fsm": {
+          "FOLLOW": 3,
+          "CAUTIOUS": 53,
+          "NEGOTIATE": 39,
+          "YIELD": 155
+        }
+      },
+      {
+        "seed": 6,
+        "progress": 0.47927516149670063,
+        "completed": false,
+        "collisions": 0,
+        "shield": 159,
+        "lat_mean": 2.1229791839996324,
+        "lat_p95": 2.4492219999956433,
+        "smooth": 4.526263389922423e-05,
+        "min_clear": 0.6768454715304153,
+        "fsm": {
+          "FOLLOW": 21,
+          "CAUTIOUS": 38,
+          "NEGOTIATE": 46,
+          "YIELD": 145
+        }
+      },
+      {
+        "seed": 7,
+        "progress": 0.4672483177094987,
+        "completed": false,
+        "collisions": 0,
+        "shield": 145,
+        "lat_mean": 1.9394140520007568,
+        "lat_p95": 2.252558999998655,
+        "smooth": 0.00041473261109581605,
+        "min_clear": 2.0846174807277422,
+        "fsm": {
+          "CAUTIOUS": 108,
+          "FOLLOW": 22,
+          "NEGOTIATE": 75,
+          "YIELD": 45
+        }
+      },
+      {
+        "seed": 8,
+        "progress": 0.48404753982517523,
+        "completed": false,
+        "collisions": 0,
+        "shield": 138,
+        "lat_mean": 2.0229502279992175,
+        "lat_p95": 2.43988299999387,
+        "smooth": 0.0008265138518260592,
+        "min_clear": 1.6100921690921246,
+        "fsm": {
+          "CAUTIOUS": 64,
+          "FOLLOW": 1,
+          "YIELD": 139,
+          "EMERGENCY": 9,
+          "NEGOTIATE": 37
+        }
+      },
+      {
+        "seed": 9,
+        "progress": 0.46765269402992593,
+        "completed": false,
+        "collisions": 0,
+        "shield": 137,
+        "lat_mean": 1.9258465399998386,
+        "lat_p95": 2.2997139999745286,
+        "smooth": 0.0006113427027281697,
+        "min_clear": 1.8377088475412182,
+        "fsm": {
+          "FOLLOW": 14,
+          "CAUTIOUS": 83,
+          "NEGOTIATE": 102,
+          "YIELD": 51
+        }
+      },
+      {
+        "seed": 10,
+        "progress": 0.47974711274823384,
+        "completed": false,
+        "collisions": 0,
+        "shield": 166,
+        "lat_mean": 2.0292163599993955,
+        "lat_p95": 2.24038300001439,
+        "smooth": 0.0002206538754815941,
+        "min_clear": 2.5348576958785713,
+        "fsm": {
+          "CAUTIOUS": 61,
+          "FOLLOW": 1,
+          "NEGOTIATE": 46,
+          "YIELD": 142
+        }
+      }
+    ]
+  },
+  {
+    "scenario": "highway_merge",
+    "runs": 10,
+    "collision_free_runs": 10,
+    "total_collision_ticks": 0,
+    "avg_progress": 0.539,
+    "completion_rate": 0.0,
+    "lat_mean_ms": 1.422,
+    "lat_p95_ms": 1.593,
+    "smoothness": 0.00284,
+    "shield_per_run": 54.5,
+    "per_seed": [
+      {
+        "seed": 1,
+        "progress": 0.5518674418054488,
+        "completed": false,
+        "collisions": 0,
+        "shield": 54,
+        "lat_mean": 1.3546519599995008,
+        "lat_p95": 1.4554859999975633,
+        "smooth": 0.0026414793168662294,
+        "min_clear": 0.0894622703792068,
+        "fsm": {
+          "FOLLOW": 52,
+          "CAUTIOUS": 126,
+          "NEGOTIATE": 63,
+          "YIELD": 9
+        }
+      },
+      {
+        "seed": 2,
+        "progress": 0.5298725666969221,
+        "completed": false,
+        "collisions": 0,
+        "shield": 55,
+        "lat_mean": 1.3641070159989113,
+        "lat_p95": 1.4569890000188934,
+        "smooth": 0.0035939532673922646,
+        "min_clear": 0.18511101515143866,
+        "fsm": {
+          "FOLLOW": 53,
+          "CAUTIOUS": 82,
+          "NEGOTIATE": 106,
+          "YIELD": 9
+        }
+      },
+      {
+        "seed": 3,
+        "progress": 0.5561038499712637,
+        "completed": false,
+        "collisions": 0,
+        "shield": 54,
+        "lat_mean": 1.389005751999548,
+        "lat_p95": 1.5662300000087725,
+        "smooth": 0.002508098162846291,
+        "min_clear": 0.25333469661183566,
+        "fsm": {
+          "FOLLOW": 63,
+          "CAUTIOUS": 8,
+          "NEGOTIATE": 141,
+          "YIELD": 38
+        }
+      },
+      {
+        "seed": 4,
+        "progress": 0.49541816764316704,
+        "completed": false,
+        "collisions": 0,
+        "shield": 56,
+        "lat_mean": 1.3666141920000427,
+        "lat_p95": 1.5162999999915883,
+        "smooth": 0.0025745471261912492,
+        "min_clear": 0.1807470897290919,
+        "fsm": {
+          "FOLLOW": 45,
+          "CAUTIOUS": 146,
+          "NEGOTIATE": 59
+        }
+      },
+      {
+        "seed": 5,
+        "progress": 0.5130196101085704,
+        "completed": false,
+        "collisions": 0,
+        "shield": 55,
+        "lat_mean": 1.6366585200008785,
+        "lat_p95": 1.9703389999961018,
+        "smooth": 0.002859106581752322,
+        "min_clear": 0.8907675499083971,
+        "fsm": {
+          "FOLLOW": 1,
+          "CAUTIOUS": 87,
+          "NEGOTIATE": 115,
+          "YIELD": 47
+        }
+      },
+      {
+        "seed": 6,
+        "progress": 0.5474645313169267,
+        "completed": false,
+        "collisions": 0,
+        "shield": 54,
+        "lat_mean": 1.3506162360005192,
+        "lat_p95": 1.4806490000012218,
+        "smooth": 0.0026620251565901633,
+        "min_clear": 0.7683311011700914,
+        "fsm": {
+          "FOLLOW": 54,
+          "CAUTIOUS": 130,
+          "NEGOTIATE": 57,
+          "YIELD": 9
+        }
+      },
+      {
+        "seed": 7,
+        "progress": 0.5415934779010679,
+        "completed": false,
+        "collisions": 0,
+        "shield": 54,
+        "lat_mean": 1.6132354280010759,
+        "lat_p95": 1.8892770000036307,
+        "smooth": 0.0031767011638951597,
+        "min_clear": 0.13351799464895964,
+        "fsm": {
+          "FOLLOW": 1,
+          "CAUTIOUS": 54,
+          "NEGOTIATE": 178,
+          "YIELD": 17
+        }
+      },
+      {
+        "seed": 8,
+        "progress": 0.5324481221244677,
+        "completed": false,
+        "collisions": 0,
+        "shield": 55,
+        "lat_mean": 1.3978936799989015,
+        "lat_p95": 1.6117490000056023,
+        "smooth": 0.002659801240342428,
+        "min_clear": 0.5216329151126515,
+        "fsm": {
+          "FOLLOW": 45,
+          "CAUTIOUS": 141,
+          "NEGOTIATE": 64
+        }
+      },
+      {
+        "seed": 9,
+        "progress": 0.5677879471629774,
+        "completed": false,
+        "collisions": 0,
+        "shield": 54,
+        "lat_mean": 1.3692749000018694,
+        "lat_p95": 1.512613000016927,
+        "smooth": 0.0027656655661067618,
+        "min_clear": 0.2811400075119422,
+        "fsm": {
+          "FOLLOW": 50,
+          "CAUTIOUS": 15,
+          "NEGOTIATE": 181,
+          "YIELD": 4
+        }
+      },
+      {
+        "seed": 10,
+        "progress": 0.5528467691438038,
+        "completed": false,
+        "collisions": 0,
+        "shield": 54,
+        "lat_mean": 1.3729868359997681,
+        "lat_p95": 1.472309000007499,
+        "smooth": 0.0029590616681868308,
+        "min_clear": 0.24438766254802355,
+        "fsm": {
+          "FOLLOW": 55,
+          "CAUTIOUS": 13,
+          "NEGOTIATE": 174,
+          "YIELD": 8
+        }
+      }
+    ]
+  },
+  {
+    "scenario": "market_area",
+    "runs": 10,
+    "collision_free_runs": 10,
+    "total_collision_ticks": 0,
+    "avg_progress": 0.222,
+    "completion_rate": 0.0,
+    "lat_mean_ms": 2.217,
+    "lat_p95_ms": 2.628,
+    "smoothness": 0.00147,
+    "shield_per_run": 175,
+    "per_seed": [
+      {
+        "seed": 1,
+        "progress": 0.20963786568030368,
+        "completed": false,
+        "collisions": 0,
+        "shield": 199,
+        "lat_mean": 2.2126548280000407,
+        "lat_p95": 2.672903000018323,
+        "smooth": 0.0009541745772212468,
+        "min_clear": 0.7787610557964509,
+        "fsm": {
+          "CAUTIOUS": 60,
+          "NEGOTIATE": 108,
+          "YIELD": 74,
+          "EMERGENCY": 8
+        }
+      },
+      {
+        "seed": 2,
+        "progress": 0.2824347378326097,
+        "completed": false,
+        "collisions": 0,
+        "shield": 107,
+        "lat_mean": 2.385528103999377,
+        "lat_p95": 2.685031999988041,
+        "smooth": 0.0022149023673146877,
+        "min_clear": 0.15896393246185228,
+        "fsm": {
+          "CAUTIOUS": 14,
+          "NEGOTIATE": 80,
+          "YIELD": 122,
+          "EMERGENCY": 34
+        }
+      },
+      {
+        "seed": 3,
+        "progress": 0.21699990670910638,
+        "completed": false,
+        "collisions": 0,
+        "shield": 211,
+        "lat_mean": 2.1050129719994857,
+        "lat_p95": 2.4377430000015465,
+        "smooth": 0.0012523951011375336,
+        "min_clear": 1.0780933150576026,
+        "fsm": {
+          "CAUTIOUS": 42,
+          "NEGOTIATE": 128,
+          "YIELD": 57,
+          "EMERGENCY": 23
+        }
+      },
+      {
+        "seed": 4,
+        "progress": 0.21659242752060817,
+        "completed": false,
+        "collisions": 0,
+        "shield": 180,
+        "lat_mean": 2.3166416999997637,
+        "lat_p95": 2.6277999999990698,
+        "smooth": 0.0013733371817135263,
+        "min_clear": 1.5637898432390922,
+        "fsm": {
+          "CAUTIOUS": 28,
+          "NEGOTIATE": 95,
+          "YIELD": 85,
+          "EMERGENCY": 42
+        }
+      },
+      {
+        "seed": 5,
+        "progress": 0.21238418935002368,
+        "completed": false,
+        "collisions": 0,
+        "shield": 125,
+        "lat_mean": 1.8914201799999546,
+        "lat_p95": 2.4953550000077485,
+        "smooth": 0.001865243352750292,
+        "min_clear": 0.19447698982994022,
+        "fsm": {
+          "CAUTIOUS": 4,
+          "NEGOTIATE": 57,
+          "YIELD": 183,
+          "EMERGENCY": 6
+        }
+      },
+      {
+        "seed": 6,
+        "progress": 0.21706606588896288,
+        "completed": false,
+        "collisions": 0,
+        "shield": 196,
+        "lat_mean": 2.305565363998994,
+        "lat_p95": 2.6345599999899605,
+        "smooth": 0.001344988183568306,
+        "min_clear": 1.7634409251258336,
+        "fsm": {
+          "CAUTIOUS": 81,
+          "NEGOTIATE": 91,
+          "YIELD": 30,
+          "EMERGENCY": 48
+        }
+      },
+      {
+        "seed": 7,
+        "progress": 0.21499001395292375,
+        "completed": false,
+        "collisions": 0,
+        "shield": 188,
+        "lat_mean": 1.9732332679994897,
+        "lat_p95": 2.2730710000189447,
+        "smooth": 0.0012592484363117796,
+        "min_clear": 0.8631843678996096,
+        "fsm": {
+          "CAUTIOUS": 15,
+          "NEGOTIATE": 120,
+          "YIELD": 82,
+          "EMERGENCY": 33
+        }
+      },
+      {
+        "seed": 8,
+        "progress": 0.22283194799875947,
+        "completed": false,
+        "collisions": 0,
+        "shield": 196,
+        "lat_mean": 2.3686515479996615,
+        "lat_p95": 2.8090589999862914,
+        "smooth": 0.0016429015350197579,
+        "min_clear": 1.255597083668347,
+        "fsm": {
+          "CAUTIOUS": 15,
+          "NEGOTIATE": 158,
+          "YIELD": 42,
+          "EMERGENCY": 35
+        }
+      },
+      {
+        "seed": 9,
+        "progress": 0.22222231149165578,
+        "completed": false,
+        "collisions": 0,
+        "shield": 180,
+        "lat_mean": 2.4547030319993155,
+        "lat_p95": 3.2450239999946007,
+        "smooth": 0.0017847798113627637,
+        "min_clear": 0.3614595329831,
+        "fsm": {
+          "CAUTIOUS": 7,
+          "NEGOTIATE": 106,
+          "YIELD": 87,
+          "EMERGENCY": 50
+        }
+      },
+      {
+        "seed": 10,
+        "progress": 0.2009202855809341,
+        "completed": false,
+        "collisions": 0,
+        "shield": 168,
+        "lat_mean": 2.1535829599991985,
+        "lat_p95": 2.399218999983077,
+        "smooth": 0.0010033378115733263,
+        "min_clear": 0.7872012800723492,
+        "fsm": {
+          "CAUTIOUS": 25,
+          "NEGOTIATE": 90,
+          "YIELD": 96,
+          "EMERGENCY": 39
+        }
+      }
+    ]
+  },
+  {
+    "scenario": "cattle_crossing",
+    "runs": 10,
+    "collision_free_runs": 10,
+    "total_collision_ticks": 0,
+    "avg_progress": 0.875,
+    "completion_rate": 0.0,
+    "lat_mean_ms": 1.547,
+    "lat_p95_ms": 1.947,
+    "smoothness": 0.00243,
+    "shield_per_run": 73.1,
+    "per_seed": [
+      {
+        "seed": 1,
+        "progress": 0.91763332767792,
+        "completed": false,
+        "collisions": 0,
+        "shield": 76,
+        "lat_mean": 1.4775602560007428,
+        "lat_p95": 1.9405990000223028,
+        "smooth": 0.002916924824729525,
+        "min_clear": 0.6905378625728306,
+        "fsm": {
+          "FOLLOW": 36,
+          "CAUTIOUS": 153,
+          "NEGOTIATE": 61
+        }
+      },
+      {
+        "seed": 2,
+        "progress": 0.8940137586771328,
+        "completed": false,
+        "collisions": 0,
+        "shield": 62,
+        "lat_mean": 1.5054055279997556,
+        "lat_p95": 1.757859000008466,
+        "smooth": 0.002472033406430059,
+        "min_clear": 0.28437229827389326,
+        "fsm": {
+          "FOLLOW": 70,
+          "CAUTIOUS": 105,
+          "NEGOTIATE": 75
+        }
+      },
+      {
+        "seed": 3,
+        "progress": 0.9181692560986433,
+        "completed": false,
+        "collisions": 0,
+        "shield": 86,
+        "lat_mean": 1.553576316000317,
+        "lat_p95": 2.1217540000009194,
+        "smooth": 0.0031282234088949225,
+        "min_clear": 0.3595364775750617,
+        "fsm": {
+          "FOLLOW": 38,
+          "CAUTIOUS": 146,
+          "NEGOTIATE": 66
+        }
+      },
+      {
+        "seed": 4,
+        "progress": 0.9169401567432995,
+        "completed": false,
+        "collisions": 0,
+        "shield": 60,
+        "lat_mean": 1.5222343919998593,
+        "lat_p95": 1.9203300000185664,
+        "smooth": 0.0024088831109405637,
+        "min_clear": 0.35903977301419265,
+        "fsm": {
+          "FOLLOW": 43,
+          "CAUTIOUS": 129,
+          "NEGOTIATE": 78
+        }
+      },
+      {
+        "seed": 5,
+        "progress": 0.9143065830291277,
+        "completed": false,
+        "collisions": 0,
+        "shield": 62,
+        "lat_mean": 1.520096035999245,
+        "lat_p95": 1.833626000006916,
+        "smooth": 0.0020299840159919385,
+        "min_clear": 0.30752250827651284,
+        "fsm": {
+          "FOLLOW": 63,
+          "CAUTIOUS": 148,
+          "NEGOTIATE": 39
+        }
+      },
+      {
+        "seed": 6,
+        "progress": 0.527372372620601,
+        "completed": false,
+        "collisions": 0,
+        "shield": 138,
+        "lat_mean": 1.5537972639998543,
+        "lat_p95": 1.8652020000047287,
+        "smooth": 0.0006779194538962018,
+        "min_clear": 0.22078576758131868,
+        "fsm": {
+          "FOLLOW": 45,
+          "CAUTIOUS": 47,
+          "NEGOTIATE": 158
+        }
+      },
+      {
+        "seed": 7,
+        "progress": 0.9138684227657401,
+        "completed": false,
+        "collisions": 0,
+        "shield": 64,
+        "lat_mean": 1.6760536479999928,
+        "lat_p95": 2.1711309999830064,
+        "smooth": 0.0023833969454999902,
+        "min_clear": 0.44871238572321476,
+        "fsm": {
+          "FOLLOW": 44,
+          "CAUTIOUS": 106,
+          "NEGOTIATE": 100
+        }
+      },
+      {
+        "seed": 8,
+        "progress": 0.9168075711608176,
+        "completed": false,
+        "collisions": 0,
+        "shield": 50,
+        "lat_mean": 1.5556897639999079,
+        "lat_p95": 1.9595150000100148,
+        "smooth": 0.0034533559560971363,
+        "min_clear": 0.8020388133330314,
+        "fsm": {
+          "FOLLOW": 38,
+          "CAUTIOUS": 110,
+          "NEGOTIATE": 99,
+          "YIELD": 3
+        }
+      },
+      {
+        "seed": 9,
+        "progress": 0.918967265631588,
+        "completed": false,
+        "collisions": 0,
+        "shield": 67,
+        "lat_mean": 1.4689343959989856,
+        "lat_p95": 1.922210000003588,
+        "smooth": 0.002495287804947744,
+        "min_clear": 0.27061874843100747,
+        "fsm": {
+          "FOLLOW": 35,
+          "CAUTIOUS": 162,
+          "NEGOTIATE": 53
+        }
+      },
+      {
+        "seed": 10,
+        "progress": 0.9132766791431021,
+        "completed": false,
+        "collisions": 0,
+        "shield": 66,
+        "lat_mean": 1.6329195840006605,
+        "lat_p95": 1.9793769999978394,
+        "smooth": 0.0022998541636071665,
+        "min_clear": 0.608444946318331,
+        "fsm": {
+          "FOLLOW": 38,
+          "CAUTIOUS": 119,
+          "NEGOTIATE": 93
+        }
+      }
+    ]
+  }
+]
