@@ -113,3 +113,26 @@ All development must follow a feature-branch workflow to maintain a working base
 1. Every PR to `main` must pass headless verification (`python -m metrics.run_headless 10 25`).
 2. No breaking changes to existing data structures (`PerceptionResult`, `EnvironmentState`, `PlanningDecision`).
 3. No binary dataset files or model checkpoints (> 5 MB) may be committed.
+
+---
+
+## 7. Integration Checkpoints
+
+Checkpoint 1 — Branch setup:
+All members confirm their branch, baseline execution, and intended files.
+
+Checkpoint 2 — First working modules:
+Member 1 demonstrates PerceptionResult.
+Member 2 demonstrates Prediction/Risk/PlanningDecision.
+Member 3 demonstrates EnvironmentState and road network.
+
+Checkpoint 3 — Pull Request readiness:
+Each branch must pass its tests, contain no raw datasets or large weights, and document changes.
+
+Checkpoint 4 — Integration:
+Merge one branch at a time and run the complete five-scenario regression after every merge.
+
+Integration order:
+1. feature/simulation
+2. feature/perception
+3. feature/intelligence
